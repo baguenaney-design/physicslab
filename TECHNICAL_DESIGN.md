@@ -149,7 +149,7 @@ Physics calculations are **never in the canvas component**. They live in `physic
  * v1f = ((m1-m2)*u1 + 2*m2*u2) / (m1+m2)
  * v2f = ((m2-m1)*u2 + 2*m1*u1) / (m1+m2)
  * 
- * Test: m1=2, u1=3, m2=3, u2=-1 → v1f=-1.8, v2f=1.2
+ * Test: m1=2, u1=3, m2=3, u2=-1 → v1f=-1.8, v2f=2.2
  */
 export function elasticCollision(m1, u1, m2, u2) {
   const v1f = ((m1 - m2) * u1 + 2 * m2 * u2) / (m1 + m2);
@@ -417,7 +417,7 @@ KE = ½mv²
 
 **Known test cases:**
 ```
-Elastic:   m1=2, u1=3, m2=3, u2=-1  → v1f=-1.8,  v2f=1.2
+Elastic:   m1=2, u1=3, m2=3, u2=-1  → v1f=-1.8,  v2f=2.2
 Elastic:   m1=m2,      u2=0          → v1f=0,      v2f=u1  (velocities exchange)
 Inelastic: m1=2, u1=3, m2=3, u2=-1  → vf=0.6
 ```
@@ -508,7 +508,7 @@ For every physics function, paste the known test cases into the browser console 
 ```js
 import { elasticCollision } from './physics.js';
 console.assert(Math.abs(elasticCollision(2,3,3,-1).v1f - (-1.8)) < 0.001, 'elastic test 1 failed');
-console.assert(Math.abs(elasticCollision(2,3,3,-1).v2f - 1.2) < 0.001, 'elastic test 2 failed');
+console.assert(Math.abs(elasticCollision(2,3,3,-1).v2f - 2.2) < 0.001, 'elastic test 2 failed');
 ```
 
 **Integration tests — human:**

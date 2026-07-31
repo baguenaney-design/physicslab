@@ -73,7 +73,7 @@ Tell CC:
 Verify: open the page, see two coloured blocks on a dark track. Commit.
 
 **1.2 — Physics engine**
-> "In `src/simulations/momentum/physics.js`, write the physics functions for this simulation. Include: (1) elastic collision outcome — v1f and v2f using the standard 1D elastic collision formulae, with the formula cited in a comment. (2) perfectly inelastic collision outcome — combined velocity, with formula cited. (3) KE calculation before and after. (4) Add a comment block with known test cases: m1=2, u1=3, m2=3, u2=-1 elastic → v1f=-1.8, v2f=1.2. Do not touch the canvas component."
+> "In `src/simulations/momentum/physics.js`, write the physics functions for this simulation. Include: (1) elastic collision outcome — v1f and v2f using the standard 1D elastic collision formulae, with the formula cited in a comment. (2) perfectly inelastic collision outcome — combined velocity, with formula cited. (3) KE calculation before and after. (4) Add a comment block with known test cases: m1=2, u1=3, m2=3, u2=-1 elastic → v1f=-1.8, v2f=2.2. Do not touch the canvas component."
 
 Verify: write a quick console.log test of the known case. Numbers must match exactly. Commit.
 
