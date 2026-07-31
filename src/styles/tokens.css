@@ -1,0 +1,25 @@
+/* Design tokens — see CLAUDE.md "Visual design" section for register rules. */
+
+:root {
+  /* Editorial register — landing, nav, curriculum map, content panels */
+  --editorial-bg: #f8f7f4;
+  --editorial-text: #1a1a1a;
+  --editorial-accent: #2563eb;
+  --editorial-text-secondary: #6b7280;
+  --editorial-border: #e5e3df;
+  --editorial-font: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Instrument register — simulation canvas, controls, readouts, AI chat */
+  --instrument-bg: #15171c;
+  --instrument-panel: #1b1e25;
+  --instrument-grid: #2a2d35;
+  --instrument-phosphor-green: #7cffb2;
+  --instrument-block-a: #6fa8ff;
+  --instrument-block-b: #ffb454;
+  --instrument-warning: #ffb454;
+  --instrument-body-font: 'Inter', system-ui, -apple-system, sans-serif;
+  --instrument-data-font: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Shared chrome rules */
+  --radius-max: 4px;
+}
