@@ -194,3 +194,9 @@ This is non-negotiable. It is what makes the AI defensible to teachers and depar
 - ❌ Any subject other than physics
 - ❌ 3D rendering (Three.js for simulations is Phase 2+, not v1)
 - ❌ Personalisation or per-user recommendations
+
+---
+
+## Future Features
+
+- Add friction toggle to momentum sim for deceleration during approach phase — deferred post-v1.

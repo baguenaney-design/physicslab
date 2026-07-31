@@ -1,25 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { elasticCollision } from './physics.js'
+import { elasticCollision, inelasticCollision } from './physics.js'
 
 const BLOCK_WIDTH = 60
 const BLOCK_HEIGHT = 60
 const BLOCK_A_START_X = 150
 const BLOCK_B_START_X = 500
 
-// masses (kg) and initial velocities (m/s) — fixed for now, sliders come later
-const MASS_A = 2
-const MASS_B = 3
-const INITIAL_VELOCITY_A = 3 // moving right
-const INITIAL_VELOCITY_B = -1 // moving left
-
 const PIXELS_PER_METER = 55 // scales m/s velocities to canvas px/s for animation
 
-function createInitialSimState() {
+function createInitialSimState(velocityA, velocityB) {
   return {
     x1: BLOCK_A_START_X,
     x2: BLOCK_B_START_X,
-    v1: INITIAL_VELOCITY_A,
-    v2: INITIAL_VELOCITY_B,
+    v1: velocityA,
+    v2: velocityB,
     collided: false,
     running: false,
   }
@@ -52,10 +46,10 @@ function draw(ctx, width, height, x1, x2) {
   ctx.fillRect(x2, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
 }
 
-function MomentumCanvas() {
+function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, mode = 'elastic' }) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
-  const simRef = useRef(createInitialSimState())
+  const simRef = useRef(createInitialSimState(velocityA, velocityB))
   const rafRef = useRef(null)
   const lastTimeRef = useRef(null)
 
@@ -78,7 +72,8 @@ function MomentumCanvas() {
     // collision: block A's right edge reaches block B's left edge
     if (!sim.collided && sim.x1 + BLOCK_WIDTH >= sim.x2) {
       sim.x2 = sim.x1 + BLOCK_WIDTH // snap to touching, no overlap
-      const { v1f, v2f } = elasticCollision(MASS_A, sim.v1, MASS_B, sim.v2)
+      const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
+      const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
       sim.v1 = v1f
       sim.v2 = v2f
       sim.collided = true
@@ -113,6 +108,13 @@ function MomentumCanvas() {
     }
   }, [])
 
+  // sliders only take effect before Launch — sync starting velocities while idle
+  useEffect(() => {
+    if (simRef.current.running) return
+    simRef.current.v1 = velocityA
+    simRef.current.v2 = velocityB
+  }, [velocityA, velocityB])
+
   const handleLaunch = () => {
     const sim = simRef.current
     if (sim.running) return
@@ -127,7 +129,7 @@ function MomentumCanvas() {
       rafRef.current = null
     }
     lastTimeRef.current = null
-    simRef.current = createInitialSimState()
+    simRef.current = createInitialSimState(velocityA, velocityB)
     redraw()
   }
 
