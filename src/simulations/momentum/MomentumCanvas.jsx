@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { elasticCollision, inelasticCollision } from './physics.js'
+import { elasticCollision, inelasticCollision, kineticEnergy } from './physics.js'
 
 const BLOCK_A_START_X = 150
 const BLOCK_B_START_X = 500
@@ -19,6 +19,7 @@ function createInitialSimState(velocityA, velocityB) {
     v2: velocityB,
     collided: false,
     running: false,
+    keLoss: null,
   }
 }
 
@@ -49,7 +50,14 @@ function draw(ctx, width, height, x1, x2, sizeA, sizeB) {
   ctx.fillRect(x2, trackY - sizeB, sizeB, sizeB)
 }
 
-function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, mode = 'elastic' }) {
+function MomentumCanvas({
+  massA = 2,
+  velocityA = 3,
+  massB = 3,
+  velocityB = -1,
+  mode = 'elastic',
+  onFrame,
+}) {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const simRef = useRef(createInitialSimState(velocityA, velocityB))
@@ -61,6 +69,15 @@ function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, m
     const ctx = canvas.getContext('2d')
     const sim = simRef.current
     draw(ctx, canvas.width, canvas.height, sim.x1, sim.x2, blockSizeForMass(massA), blockSizeForMass(massB))
+
+    if (onFrame) {
+      onFrame({
+        momentumA: massA * sim.v1,
+        momentumB: massB * sim.v2,
+        totalMomentum: massA * sim.v1 + massB * sim.v2,
+        keLoss: sim.keLoss,
+      })
+    }
   }
 
   const step = (timestamp) => {
@@ -76,11 +93,19 @@ function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, m
     // collision: block A's right edge reaches block B's left edge
     if (!sim.collided && sim.x1 + widthA >= sim.x2) {
       sim.x2 = sim.x1 + widthA // snap to touching, no overlap
+      const uBeforeA = sim.v1
+      const uBeforeB = sim.v2
       const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
       const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
       sim.v1 = v1f
       sim.v2 = v2f
       sim.collided = true
+
+      if (mode === 'inelastic') {
+        const keBefore = kineticEnergy(massA, uBeforeA) + kineticEnergy(massB, uBeforeB)
+        const keAfter = kineticEnergy(massA, v1f) + kineticEnergy(massB, v2f)
+        sim.keLoss = keBefore - keAfter
+      }
     }
 
     redraw()

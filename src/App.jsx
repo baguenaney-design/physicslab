@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import MomentumCanvas from './simulations/momentum/MomentumCanvas'
 import Controls from './simulations/momentum/Controls'
+import Readout from './simulations/momentum/Readout'
 
 function App() {
   const [simState, setSimState] = useState({
@@ -10,16 +11,22 @@ function App() {
     velocityB: -1,
     mode: 'elastic',
   })
+  const readoutRef = useRef(null)
 
   const handleControlsChange = (partial) => {
     setSimState((prev) => ({ ...prev, ...partial }))
   }
 
+  const handleFrame = (frame) => {
+    readoutRef.current?.update(frame)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh' }}>
       <div style={{ flex: 1, minHeight: 0 }}>
-        <MomentumCanvas {...simState} />
+        <MomentumCanvas {...simState} onFrame={handleFrame} />
       </div>
+      <Readout ref={readoutRef} />
       <Controls {...simState} onChange={handleControlsChange} />
     </div>
   )
