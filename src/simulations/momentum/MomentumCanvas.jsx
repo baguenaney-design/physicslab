@@ -12,7 +12,7 @@ const MASS_B = 3
 const INITIAL_VELOCITY_A = 3 // moving right
 const INITIAL_VELOCITY_B = -1 // moving left
 
-const PIXELS_PER_METER = 60 // scales m/s velocities to canvas px/s for animation
+const PIXELS_PER_METER = 55 // scales m/s velocities to canvas px/s for animation
 
 function createInitialSimState() {
   return {
