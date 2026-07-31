@@ -1,5 +1,11 @@
+import MomentumCanvas from './simulations/momentum/MomentumCanvas'
+
 function App() {
-  return null
+  return (
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <MomentumCanvas />
+    </div>
+  )
 }
 
 export default App
