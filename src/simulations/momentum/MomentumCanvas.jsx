@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { elasticCollision, inelasticCollision } from './physics.js'
 
-const BLOCK_WIDTH = 60
-const BLOCK_HEIGHT = 60
 const BLOCK_A_START_X = 150
 const BLOCK_B_START_X = 500
 
 const PIXELS_PER_METER = 55 // scales m/s velocities to canvas px/s for animation
+
+// block size scales with mass so heavier blocks read as visually heavier
+function blockSizeForMass(mass) {
+  return 40 + mass * 10
+}
 
 function createInitialSimState(velocityA, velocityB) {
   return {
@@ -19,7 +22,7 @@ function createInitialSimState(velocityA, velocityB) {
   }
 }
 
-function draw(ctx, width, height, x1, x2) {
+function draw(ctx, width, height, x1, x2, sizeA, sizeB) {
   const styles = getComputedStyle(document.documentElement)
   const bgColor = styles.getPropertyValue('--instrument-bg').trim()
   const gridColor = styles.getPropertyValue('--instrument-grid').trim()
@@ -40,10 +43,10 @@ function draw(ctx, width, height, x1, x2) {
   ctx.stroke()
 
   ctx.fillStyle = blockAColor
-  ctx.fillRect(x1, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
+  ctx.fillRect(x1, trackY - sizeA, sizeA, sizeA)
 
   ctx.fillStyle = blockBColor
-  ctx.fillRect(x2, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
+  ctx.fillRect(x2, trackY - sizeB, sizeB, sizeB)
 }
 
 function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, mode = 'elastic' }) {
@@ -57,7 +60,7 @@ function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, m
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     const sim = simRef.current
-    draw(ctx, canvas.width, canvas.height, sim.x1, sim.x2)
+    draw(ctx, canvas.width, canvas.height, sim.x1, sim.x2, blockSizeForMass(massA), blockSizeForMass(massB))
   }
 
   const step = (timestamp) => {
@@ -66,12 +69,13 @@ function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, m
     lastTimeRef.current = timestamp
 
     const sim = simRef.current
+    const widthA = blockSizeForMass(massA)
     sim.x1 += sim.v1 * PIXELS_PER_METER * dt
     sim.x2 += sim.v2 * PIXELS_PER_METER * dt
 
     // collision: block A's right edge reaches block B's left edge
-    if (!sim.collided && sim.x1 + BLOCK_WIDTH >= sim.x2) {
-      sim.x2 = sim.x1 + BLOCK_WIDTH // snap to touching, no overlap
+    if (!sim.collided && sim.x1 + widthA >= sim.x2) {
+      sim.x2 = sim.x1 + widthA // snap to touching, no overlap
       const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
       const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
       sim.v1 = v1f
@@ -114,6 +118,12 @@ function MomentumCanvas({ massA = 2, velocityA = 3, massB = 3, velocityB = -1, m
     simRef.current.v1 = velocityA
     simRef.current.v2 = velocityB
   }, [velocityA, velocityB])
+
+  // block size reflects mass immediately, even before Launch
+  useEffect(() => {
+    if (simRef.current.running) return
+    redraw()
+  }, [massA, massB])
 
   const handleLaunch = () => {
     const sim = simRef.current
