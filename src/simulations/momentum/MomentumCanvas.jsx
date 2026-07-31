@@ -1,11 +1,31 @@
 import { useEffect, useRef } from 'react'
+import { elasticCollision } from './physics.js'
 
 const BLOCK_WIDTH = 60
 const BLOCK_HEIGHT = 60
-const BLOCK_A_X = 150
-const BLOCK_B_X = 500
+const BLOCK_A_START_X = 150
+const BLOCK_B_START_X = 500
 
-function draw(ctx, width, height) {
+// masses (kg) and initial velocities (m/s) — fixed for now, sliders come later
+const MASS_A = 2
+const MASS_B = 3
+const INITIAL_VELOCITY_A = 3 // moving right
+const INITIAL_VELOCITY_B = -1 // moving left
+
+const PIXELS_PER_METER = 60 // scales m/s velocities to canvas px/s for animation
+
+function createInitialSimState() {
+  return {
+    x1: BLOCK_A_START_X,
+    x2: BLOCK_B_START_X,
+    v1: INITIAL_VELOCITY_A,
+    v2: INITIAL_VELOCITY_B,
+    collided: false,
+    running: false,
+  }
+}
+
+function draw(ctx, width, height, x1, x2) {
   const styles = getComputedStyle(document.documentElement)
   const bgColor = styles.getPropertyValue('--instrument-bg').trim()
   const gridColor = styles.getPropertyValue('--instrument-grid').trim()
@@ -26,26 +46,60 @@ function draw(ctx, width, height) {
   ctx.stroke()
 
   ctx.fillStyle = blockAColor
-  ctx.fillRect(BLOCK_A_X, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
+  ctx.fillRect(x1, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
 
   ctx.fillStyle = blockBColor
-  ctx.fillRect(BLOCK_B_X, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
+  ctx.fillRect(x2, trackY - BLOCK_HEIGHT, BLOCK_WIDTH, BLOCK_HEIGHT)
 }
 
 function MomentumCanvas() {
   const containerRef = useRef(null)
   const canvasRef = useRef(null)
+  const simRef = useRef(createInitialSimState())
+  const rafRef = useRef(null)
+  const lastTimeRef = useRef(null)
+
+  const redraw = () => {
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    const sim = simRef.current
+    draw(ctx, canvas.width, canvas.height, sim.x1, sim.x2)
+  }
+
+  const step = (timestamp) => {
+    if (lastTimeRef.current === null) lastTimeRef.current = timestamp
+    const dt = (timestamp - lastTimeRef.current) / 1000
+    lastTimeRef.current = timestamp
+
+    const sim = simRef.current
+    sim.x1 += sim.v1 * PIXELS_PER_METER * dt
+    sim.x2 += sim.v2 * PIXELS_PER_METER * dt
+
+    // collision: block A's right edge reaches block B's left edge
+    if (!sim.collided && sim.x1 + BLOCK_WIDTH >= sim.x2) {
+      sim.x2 = sim.x1 + BLOCK_WIDTH // snap to touching, no overlap
+      const { v1f, v2f } = elasticCollision(MASS_A, sim.v1, MASS_B, sim.v2)
+      sim.v1 = v1f
+      sim.v2 = v2f
+      sim.collided = true
+    }
+
+    redraw()
+
+    if (sim.running) {
+      rafRef.current = requestAnimationFrame(step)
+    }
+  }
 
   useEffect(() => {
     const container = containerRef.current
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
 
     const resize = () => {
       const { width, height } = container.getBoundingClientRect()
       canvas.width = width
       canvas.height = height
-      draw(ctx, width, height)
+      redraw()
     }
 
     resize()
@@ -53,12 +107,77 @@ function MomentumCanvas() {
     const observer = new ResizeObserver(resize)
     observer.observe(container)
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    }
   }, [])
 
+  const handleLaunch = () => {
+    const sim = simRef.current
+    if (sim.running) return
+    sim.running = true
+    lastTimeRef.current = null
+    rafRef.current = requestAnimationFrame(step)
+  }
+
+  const handleReset = () => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    lastTimeRef.current = null
+    simRef.current = createInitialSimState()
+    redraw()
+  }
+
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+      <div ref={containerRef} style={{ flex: 1, minHeight: 0 }}>
+        <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          gap: '12px',
+          padding: '12px',
+          background: 'var(--instrument-panel)',
+          borderTop: '1px solid var(--instrument-grid)',
+        }}
+      >
+        <button
+          type="button"
+          onClick={handleLaunch}
+          style={{
+            fontFamily: 'var(--instrument-body-font)',
+            fontSize: '14px',
+            padding: '8px 20px',
+            borderRadius: 'var(--radius-max)',
+            border: 'none',
+            background: 'var(--instrument-phosphor-green)',
+            color: 'var(--instrument-bg)',
+            cursor: 'pointer',
+          }}
+        >
+          Launch
+        </button>
+        <button
+          type="button"
+          onClick={handleReset}
+          style={{
+            fontFamily: 'var(--instrument-body-font)',
+            fontSize: '14px',
+            padding: '8px 20px',
+            borderRadius: 'var(--radius-max)',
+            border: '1px solid var(--instrument-grid)',
+            background: 'transparent',
+            color: 'var(--instrument-text)',
+            cursor: 'pointer',
+          }}
+        >
+          Reset
+        </button>
+      </div>
     </div>
   )
 }
