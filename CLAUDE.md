@@ -102,7 +102,7 @@ These rules exist because a wrong answer in a physics simulation can cost a stud
 - KE loss must be calculated and displayed in inelastic collisions.
 - Every complex calculation must include a known input/output test case in comments:
   ```js
-  // test: m1=2, u1=3, m2=3, u2=-1 → v1f=-1.8, v2f=1.2
+  // test: m1=2, u1=3, m2=3, u2=-1 → v1f=-1.8, v2f=2.2
   ```
 - When in doubt about a formula: ask before implementing. Do not guess.
 
