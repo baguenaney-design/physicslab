@@ -17,9 +17,68 @@ function createInitialSimState(velocityA, velocityB) {
     x2: BLOCK_B_START_X,
     v1: velocityA,
     v2: velocityB,
-    collided: false,
+    joined: false, // true once a perfectly inelastic collision has stuck the blocks together
     running: false,
     keLoss: null,
+  }
+}
+
+// Wall bounce, modelled as an elastic collision with an immovable wall: the
+// block keeps its speed and reverses direction.
+// source: elastic collision v1f = ((m1-m2)*u1 + 2*m2*u2) / (m1+m2) with a
+//         stationary wall (u2=0) as m2 → ∞ reduces to v1f = -u1
+// test: block at x=-3 travelling at -2.0 m/s → x=0, v=+2.0 m/s
+//
+// NOTE: the wall exerts an external impulse on the two-block system, so the
+// total momentum readout legitimately changes at every wall strike. Momentum
+// is conserved only for the isolated system, i.e. between wall contacts.
+function applyWalls(sim, width, widthA, widthB) {
+  // after a perfectly inelastic collision the blocks are a single combined body,
+  // so they must bounce off the wall together or they would drift apart
+  if (sim.joined) {
+    if (sim.x1 <= 0) {
+      const overshoot = -sim.x1
+      sim.x1 += overshoot
+      sim.x2 += overshoot
+      sim.v1 = -sim.v1
+      sim.v2 = -sim.v2
+    } else if (sim.x2 + widthB >= width) {
+      const overshoot = sim.x2 + widthB - width
+      sim.x1 -= overshoot
+      sim.x2 -= overshoot
+      sim.v1 = -sim.v1
+      sim.v2 = -sim.v2
+    }
+    return
+  }
+
+  if (sim.x1 <= 0) {
+    sim.x1 = 0
+    sim.v1 = -sim.v1
+  } else if (sim.x1 + widthA >= width) {
+    sim.x1 = width - widthA
+    sim.v1 = -sim.v1
+  }
+
+  if (sim.x2 <= 0) {
+    sim.x2 = 0
+    sim.v2 = -sim.v2
+  } else if (sim.x2 + widthB >= width) {
+    sim.x2 = width - widthB
+    sim.v2 = -sim.v2
+  }
+
+  // The blocks are exactly touching straight after an elastic collision, so a
+  // wall correction on one of them can shove it into the other. Push the
+  // neighbour clear — the canvas is always wider than both blocks combined, so
+  // one pass is enough. Velocities are untouched: if the pair is still closing,
+  // the approach test resolves it as a normal collision on the next frame.
+  if (sim.x1 + widthA > sim.x2) {
+    if (sim.x2 + widthB >= width) {
+      sim.x1 = sim.x2 - widthA // block B is pinned against the right wall
+    } else {
+      sim.x2 = sim.x1 + widthA
+    }
   }
 }
 
@@ -86,12 +145,18 @@ function MomentumCanvas({
     lastTimeRef.current = timestamp
 
     const sim = simRef.current
+    const canvas = canvasRef.current
     const widthA = blockSizeForMass(massA)
+    const widthB = blockSizeForMass(massB)
     sim.x1 += sim.v1 * PIXELS_PER_METER * dt
     sim.x2 += sim.v2 * PIXELS_PER_METER * dt
 
-    // collision: block A's right edge reaches block B's left edge
-    if (!sim.collided && sim.x1 + widthA >= sim.x2) {
+    // collision: block A's right edge reaches block B's left edge.
+    // Gated on the blocks actually closing (v1 > v2) rather than a one-shot
+    // latch, so blocks returning off the walls can collide again, while a
+    // contact that has already been resolved is not resolved twice — after an
+    // elastic collision v1 < v2 and after an inelastic one v1 === v2.
+    if (sim.v1 > sim.v2 && sim.x1 + widthA >= sim.x2) {
       sim.x2 = sim.x1 + widthA // snap to touching, no overlap
       const uBeforeA = sim.v1
       const uBeforeB = sim.v2
@@ -99,14 +164,16 @@ function MomentumCanvas({
       const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
       sim.v1 = v1f
       sim.v2 = v2f
-      sim.collided = true
 
       if (mode === 'inelastic') {
+        sim.joined = true
         const keBefore = kineticEnergy(massA, uBeforeA) + kineticEnergy(massB, uBeforeB)
         const keAfter = kineticEnergy(massA, v1f) + kineticEnergy(massB, v2f)
         sim.keLoss = keBefore - keAfter
       }
     }
+
+    applyWalls(sim, canvas.width, widthA, widthB)
 
     redraw()
 
@@ -137,11 +204,13 @@ function MomentumCanvas({
     }
   }, [])
 
-  // sliders only take effect before Launch — sync starting velocities while idle
+  // sliders only take effect before Launch — sync starting velocities while idle.
+  // Redraws so the readout reflects the new momenta and bar scale immediately.
   useEffect(() => {
     if (simRef.current.running) return
     simRef.current.v1 = velocityA
     simRef.current.v2 = velocityB
+    redraw()
   }, [velocityA, velocityB])
 
   // block size reflects mass immediately, even before Launch

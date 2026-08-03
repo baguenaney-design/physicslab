@@ -72,7 +72,7 @@ function SimulationPage() {
           borderLeft: '1px solid var(--instrument-grid)',
         }}
       >
-        <Readout ref={readoutRef} />
+        <Readout ref={readoutRef} {...simState} />
 
         <div
           style={{
