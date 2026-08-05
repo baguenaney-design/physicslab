@@ -1,47 +1,36 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react'
-import { inelasticCollision, kineticEnergy } from './physics.js'
+import { elasticCollision, inelasticCollision } from './physics.js'
 
 // All three bars share one scale so Block A, Block B and the total stay directly
-// comparable against each other. The scale bounds every momentum this setup can
-// reach, including after the blocks return off the walls and collide again.
+// comparable against each other.
+//
+// On an open track the blocks collide exactly once and nothing external acts on
+// them afterwards, so the five values below are the complete set the readout can
+// ever show: the two starting momenta, the two the collision produces, and the
+// total, which is the same before and after. Their largest magnitude is an exact
+// bound rather than an estimate, so the bars use the full track width and still
+// cannot clip.
 //
 // The starting momenta alone are not a valid scale: a block can leave a collision
 // with more momentum than either block started with. For m1=2, u1=3, m2=3, u2=-1
-// the largest starting magnitude is 6.00 kg·m/s, but Block B leaves the first
-// collision at 3 * 2.2 = 6.60 and reaches 7.80 after later wall-mediated ones.
+// the largest starting magnitude is 6.00 kg·m/s, but Block B leaves the collision
+// at 3 * 2.2 = 6.60.
+//
+// test (elastic):   m1=2, u1=3, m2=3, u2=-1 → v1f=-1.8, v2f=2.2
+//                   max(6.00, 3.00, 3.60, 6.60, 3.00) = 6.60
+// test (inelastic): m1=2, u1=3, m2=3, u2=-1 → v1f=v2f=0.6
+//                   max(6.00, 3.00, 1.20, 1.80, 3.00) = 6.00
 function scaleForSetup(massA, velocityA, massB, velocityB, mode) {
-  const pTotal = Math.abs(massA * velocityA + massB * velocityB)
+  const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
+  const { v1f, v2f } = collide(massA, velocityA, massB, velocityB)
 
-  // Perfectly inelastic: the blocks collide once, then travel as a single body
-  // and only ever bounce off walls, which preserves speed. So the momenta below
-  // are the complete set of values the readout can ever show.
-  // test: m1=2, u1=3, m2=3, u2=-1 → v=0.6, max(6.00, 3.00, 1.20, 1.80, 3.00) = 6.00
-  if (mode === 'inelastic') {
-    const { v1f, v2f } = inelasticCollision(massA, velocityA, massB, velocityB)
-    return Math.max(
-      Math.abs(massA * velocityA),
-      Math.abs(massB * velocityB),
-      Math.abs(massA * v1f),
-      Math.abs(massB * v2f),
-      pTotal,
-    )
-  }
-
-  // Elastic: blocks return off the walls and re-collide indefinitely, so the
-  // scale must bound every collision rather than just the first. Both elastic
-  // collisions and wall bounces conserve the system's kinetic energy, and by
-  // Cauchy-Schwarz that caps every bar drawn here — either block, or the total:
-  //   |p1 + p2| = sqrt(m1)*(sqrt(m1)*v1) + sqrt(m2)*(sqrt(m2)*v2)
-  //             <= sqrt(m1+m2) * sqrt(m1*v1^2 + m2*v2^2)
-  //             =  sqrt(2 * KE0 * (m1+m2))
-  // Setting v2=0 shows this also dominates each block's own sqrt(2*m_i*KE0),
-  // so it is the only term needed. The total needs covering separately from the
-  // blocks because the walls apply an external impulse: once both blocks travel
-  // the same way the total exceeds its starting value (3.00 -> 9.00 for the
-  // case below), so the starting total is not an upper bound.
-  // test: m1=2, u1=3, m2=3, u2=-1 → KE0=10.5, sqrt(2*10.5*5) = 10.25
-  const ke0 = kineticEnergy(massA, velocityA) + kineticEnergy(massB, velocityB)
-  return Math.sqrt(2 * ke0 * (massA + massB))
+  return Math.max(
+    Math.abs(massA * velocityA),
+    Math.abs(massB * velocityB),
+    Math.abs(massA * v1f),
+    Math.abs(massB * v2f),
+    Math.abs(massA * velocityA + massB * velocityB),
+  )
 }
 
 function setBar(barEl, valueEl, value, scale) {

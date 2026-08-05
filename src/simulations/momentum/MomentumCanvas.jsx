@@ -6,6 +6,18 @@ const BLOCK_B_START_X = 500
 
 const PIXELS_PER_METER = 55 // scales m/s velocities to canvas px/s for animation
 
+// The blocks run on an open track. Nothing acts on them from outside, so the two
+// of them are an isolated system and total momentum is constant for the whole
+// run — that is the claim the readout makes, and it has to hold on screen.
+//
+// The canvas edge is therefore the end of the run, not a wall. A wall would have
+// to reverse a block, and reversing a block is an external impulse: the total
+// momentum would visibly jump every time one was struck. Instead the first block
+// to reach an edge settles the run — see startSettle below.
+const EDGE_FREEZE_PX = 10 // gap at which the run starts settling
+const SETTLE_SECONDS = 0.2 // wall-clock length of the settle
+const AT_REST = 1e-9 // |v| in m/s below which a block counts as stopped
+
 // block size scales with mass so heavier blocks read as visually heavier
 function blockSizeForMass(mass) {
   return 40 + mass * 10
@@ -17,68 +29,62 @@ function createInitialSimState(velocityA, velocityB) {
     x2: BLOCK_B_START_X,
     v1: velocityA,
     v2: velocityB,
-    joined: false, // true once a perfectly inelastic collision has stuck the blocks together
     running: false,
+    finished: false, // true once the run has ended at an edge or come to rest
+    settle: null, // set while the run is easing to its final stop
     keLoss: null,
   }
 }
 
-// Wall bounce, modelled as an elastic collision with an immovable wall: the
-// block keeps its speed and reverses direction.
-// source: elastic collision v1f = ((m1-m2)*u1 + 2*m2*u2) / (m1+m2) with a
-//         stationary wall (u2=0) as m2 → ∞ reduces to v1f = -u1
-// test: block at x=-3 travelling at -2.0 m/s → x=0, v=+2.0 m/s
+// Gap from a block's leading edge to the canvas edge it is heading for, and the
+// time it still needs to cover that gap. Both are Infinity for a block at rest:
+// it never arrives.
+function approachToEdge(x, blockWidth, velocity, canvasWidth) {
+  if (velocity === 0) return { gap: Infinity, time: Infinity }
+  const gap = velocity > 0 ? canvasWidth - (x + blockWidth) : x
+  return { gap, time: gap / (Math.abs(velocity) * PIXELS_PER_METER) }
+}
+
+// The settle is how the run ends on screen: rather than the blocks being cut off
+// mid-frame, the last tEff seconds of travel are stretched over SETTLE_SECONDS of
+// wall clock and eased to rest, leaving the leading block flush against the edge.
 //
-// NOTE: the wall exerts an external impulse on the two-block system, so the
-// total momentum readout legitimately changes at every wall strike. Momentum
-// is conserved only for the isolated system, i.e. between wall contacts.
-function applyWalls(sim, width, widthA, widthB) {
-  // after a perfectly inelastic collision the blocks are a single combined body,
-  // so they must bounce off the wall together or they would drift apart
-  if (sim.joined) {
-    if (sim.x1 <= 0) {
-      const overshoot = -sim.x1
-      sim.x1 += overshoot
-      sim.x2 += overshoot
-      sim.v1 = -sim.v1
-      sim.v2 = -sim.v2
-    } else if (sim.x2 + widthB >= width) {
-      const overshoot = sim.x2 + widthB - width
-      sim.x1 -= overshoot
-      sim.x2 -= overshoot
-      sim.v1 = -sim.v1
-      sim.v2 = -sim.v2
-    }
-    return
+// It is presentation, not physics. Velocities are never touched, so every value
+// the readout shows — both momenta and the total — stays exactly where the last
+// collision left it. Nothing decelerates the blocks; the animation slows down.
+//
+// Both blocks share one normalised profile s(u) = 1 - (1-u)^n, so each position
+// advances as though sim time ran forward by tEff * s(u). Their spacing therefore
+// evolves exactly as it would at constant velocity, only slower, and no block can
+// close on another that it was not already going to reach.
+//
+// n = duration / tEff makes ds/dt at u=0 match the speed the blocks were already
+// travelling at, so the motion has no visible kink where the settle begins, then
+// decays to rest at u=1. A block slow enough to need longer than SETTLE_SECONDS
+// to cover its gap gets n = 1 — it simply coasts the rest of the way and stops.
+function startSettle(sim, timestamp, tEff) {
+  const duration = Math.max(SETTLE_SECONDS, tEff)
+  sim.settle = {
+    startTime: timestamp,
+    duration,
+    tEff,
+    exponent: duration / tEff,
+    x1: sim.x1,
+    x2: sim.x2,
   }
+}
 
-  if (sim.x1 <= 0) {
-    sim.x1 = 0
-    sim.v1 = -sim.v1
-  } else if (sim.x1 + widthA >= width) {
-    sim.x1 = width - widthA
-    sim.v1 = -sim.v1
-  }
+function applySettle(sim, timestamp) {
+  const { startTime, duration, tEff, exponent, x1, x2 } = sim.settle
+  const u = Math.min((timestamp - startTime) / 1000 / duration, 1)
+  const s = 1 - (1 - u) ** exponent
 
-  if (sim.x2 <= 0) {
-    sim.x2 = 0
-    sim.v2 = -sim.v2
-  } else if (sim.x2 + widthB >= width) {
-    sim.x2 = width - widthB
-    sim.v2 = -sim.v2
-  }
+  sim.x1 = x1 + sim.v1 * PIXELS_PER_METER * tEff * s
+  sim.x2 = x2 + sim.v2 * PIXELS_PER_METER * tEff * s
 
-  // The blocks are exactly touching straight after an elastic collision, so a
-  // wall correction on one of them can shove it into the other. Push the
-  // neighbour clear — the canvas is always wider than both blocks combined, so
-  // one pass is enough. Velocities are untouched: if the pair is still closing,
-  // the approach test resolves it as a normal collision on the next frame.
-  if (sim.x1 + widthA > sim.x2) {
-    if (sim.x2 + widthB >= width) {
-      sim.x1 = sim.x2 - widthA // block B is pinned against the right wall
-    } else {
-      sim.x2 = sim.x1 + widthA
-    }
+  if (u >= 1) {
+    sim.running = false
+    sim.finished = true
   }
 }
 
@@ -146,34 +152,64 @@ function MomentumCanvas({
 
     const sim = simRef.current
     const canvas = canvasRef.current
+    const width = canvas.width
     const widthA = blockSizeForMass(massA)
     const widthB = blockSizeForMass(massB)
-    sim.x1 += sim.v1 * PIXELS_PER_METER * dt
-    sim.x2 += sim.v2 * PIXELS_PER_METER * dt
 
-    // collision: block A's right edge reaches block B's left edge.
-    // Gated on the blocks actually closing (v1 > v2) rather than a one-shot
-    // latch, so blocks returning off the walls can collide again, while a
-    // contact that has already been resolved is not resolved twice — after an
-    // elastic collision v1 < v2 and after an inelastic one v1 === v2.
-    if (sim.v1 > sim.v2 && sim.x1 + widthA >= sim.x2) {
-      sim.x2 = sim.x1 + widthA // snap to touching, no overlap
-      const uBeforeA = sim.v1
-      const uBeforeB = sim.v2
-      const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
-      const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
-      sim.v1 = v1f
-      sim.v2 = v2f
+    if (sim.settle) {
+      applySettle(sim, timestamp)
+    } else {
+      sim.x1 += sim.v1 * PIXELS_PER_METER * dt
+      sim.x2 += sim.v2 * PIXELS_PER_METER * dt
 
-      if (mode === 'inelastic') {
-        sim.joined = true
-        const keBefore = kineticEnergy(massA, uBeforeA) + kineticEnergy(massB, uBeforeB)
-        const keAfter = kineticEnergy(massA, v1f) + kineticEnergy(massB, v2f)
-        sim.keLoss = keBefore - keAfter
+      // collision: block A's right edge reaches block B's left edge.
+      // Gated on the blocks actually closing (v1 > v2) rather than a one-shot
+      // latch, so a contact that has already been resolved is not resolved
+      // twice — after an elastic collision v1 < v2 and after an inelastic one
+      // v1 === v2, so once the blocks have touched they can only separate.
+      if (sim.v1 > sim.v2 && sim.x1 + widthA >= sim.x2) {
+        sim.x2 = sim.x1 + widthA // snap to touching, no overlap
+        const uBeforeA = sim.v1
+        const uBeforeB = sim.v2
+        const collide = mode === 'inelastic' ? inelasticCollision : elasticCollision
+        const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
+        sim.v1 = v1f
+        sim.v2 = v2f
+
+        if (mode === 'inelastic') {
+          const keBefore = kineticEnergy(massA, uBeforeA) + kineticEnergy(massB, uBeforeB)
+          const keAfter = kineticEnergy(massA, v1f) + kineticEnergy(massB, v2f)
+          sim.keLoss = keBefore - keAfter
+        }
+      }
+
+      const a = approachToEdge(sim.x1, widthA, sim.v1, width)
+      const b = approachToEdge(sim.x2, widthB, sim.v2, width)
+
+      if (Math.abs(sim.v1) < AT_REST && Math.abs(sim.v2) < AT_REST) {
+        // nothing left to animate — either both blocks were launched at rest, or
+        // an inelastic collision brought a zero-momentum system to a standstill
+        sim.running = false
+        sim.finished = true
+      } else if (Math.min(a.gap, b.gap) <= EDGE_FREEZE_PX) {
+        // The run ends at the first arrival, which is not always the block that
+        // tripped the threshold: a faster block a little further out can still
+        // reach its edge first. Folding in no more travel than the earliest
+        // arrival is what keeps the other block from sliding off the canvas.
+        const tEff = Math.min(a.time, b.time)
+
+        if (tEff > 0) {
+          startSettle(sim, timestamp, tEff)
+        } else {
+          // a long frame carried a block past its edge: rewind both by the
+          // excess (tEff is negative here) so the leading one finishes flush
+          sim.x1 += sim.v1 * PIXELS_PER_METER * tEff
+          sim.x2 += sim.v2 * PIXELS_PER_METER * tEff
+          sim.running = false
+          sim.finished = true
+        }
       }
     }
-
-    applyWalls(sim, canvas.width, widthA, widthB)
 
     redraw()
 
@@ -220,9 +256,11 @@ function MomentumCanvas({
   }, [massA, massB])
 
   const handleLaunch = () => {
-    const sim = simRef.current
-    if (sim.running) return
-    sim.running = true
+    if (simRef.current.running) return
+    // a run that has already ended replays from the start, so Launch is never a
+    // dead button once the blocks have settled against an edge
+    if (simRef.current.finished) simRef.current = createInitialSimState(velocityA, velocityB)
+    simRef.current.running = true
     lastTimeRef.current = null
     rafRef.current = requestAnimationFrame(step)
   }
