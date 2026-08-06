@@ -201,3 +201,4 @@ This is non-negotiable. It is what makes the AI defensible to teachers and depar
 
 - Add friction toggle to momentum sim for deceleration during approach phase — deferred post-v1.
 - Beyond the Classroom extension for momentum — add a note explaining that perfectly inelastic collisions are modelled as instantaneous in AP/IB but in reality occur over milliseconds. Real collision involves deformation, heat generation, and sound release at the molecular level. The simulation's instantaneous KE loss is physically correct for the model but a simplification of reality. This distinction is worth exploring for IB HL and AP-C students.
+- Beyond the Classroom mode for momentum — 3Blue1Brown pi collision demo. Walled version with mass ratio slider that produces digits of pi via collision count. Optional showcase feature separate from the main isolated-system simulation.
