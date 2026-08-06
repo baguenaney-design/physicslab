@@ -180,6 +180,7 @@ This is non-negotiable. It is what makes the AI defensible to teachers and depar
 - Practice questions are tagged: AP FRQ, IB Paper 2, or Conceptual
 - Minimum 3 practice questions per simulation
 - "Beyond the Classroom" extensions are optional and only included where genuinely intellectually interesting
+- Content panels cover only what the simulation demonstrates. If a topic is not modelled in the simulation itself, it does not appear in the content panel — even if the AP/IB syllabus groups them into the same unit. Related topics get their own simulation and their own focused panel.
 
 ---
 
