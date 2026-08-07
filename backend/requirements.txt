@@ -1,13 +1,14 @@
 # PhysicsLab backend dependencies.
-# Versions are the latest stable on PyPI as of 2026-08-07, pinned exactly so the
-# Railway deploy matches local.
+# Compatible-release pins: each line accepts patch and minor updates within its
+# minor line, so security fixes land without editing this file. The floors below
+# were the current stable releases on PyPI as of 2026-08-07.
 
-fastapi==0.141.1
+fastapi~=0.141.0
 
 # [standard] extras pull in watchfiles, which `uvicorn main:app --reload` needs.
-uvicorn[standard]==0.52.1
+uvicorn[standard]~=0.52.0
 
 # Not used until Phase 3.2 (Claude API wiring). Pinned now so the environment is
 # ready and the version is a deliberate choice, not whatever pip resolves later.
-anthropic==0.121.0
-python-dotenv==1.2.2
+anthropic~=0.121.0
+python-dotenv~=1.2.0
