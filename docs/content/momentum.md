@@ -19,7 +19,30 @@ Impulse ($J = F\Delta t$) connects force and time to changes in momentum: $J = \
 ## Practice Questions
 
 ### IB Multiple Choice
-[Insert Q8 wall angle + Q9 eggs here — I'll paste them next]
+
+**Question 1** *(IB Physics SL Paper 1 style — momentum vector)*
+
+A ball of mass m strikes a vertical wall with a speed v at an angle of θ to the wall. The ball rebounds at the same speed and angle. What is the change in the magnitude of the momentum of the ball?
+
+A) 2mv sin θ  
+B) 2mv cos θ  
+C) 2mv  
+D) zero
+
+**Answer: D** — The ball's speed is unchanged, so the magnitude of momentum |p| = mv before and |p| = mv after. Change in magnitude is zero. Note: this is a common trap — students often confuse "change in magnitude of momentum" (asked here, = 0) with "magnitude of change in momentum" (which would be 2mv sin θ, since the component perpendicular to the wall reverses while the parallel component is unchanged).
+
+**Question 2** *(IB Physics SL Paper 1 style — impulse and average force)*
+
+Two eggs of equal mass fall from the same height onto a padded floor. One of them is broken while the other one bounces upwards intact. The time of collision is the same for both. Which of the following correctly describes the egg that exerts a greater average force on the floor and the reason?
+
+| | Egg with greater average force | Reason |
+|---|---|---|
+| A | Broken | Greater change in momentum |
+| B | Bounces | Less change in momentum |
+| C | Broken | Less change in momentum |
+| D | Bounces | Greater change in momentum |
+
+**Answer: D** — The bouncing egg changes momentum by 2mv (from -mv to +mv), while the broken egg changes momentum by only mv (from -mv to 0). Same collision time, greater impulse required means greater average force by F = Δp/Δt.
 
 ### AP Multiple Choice
 PENDING — Anay drafting
