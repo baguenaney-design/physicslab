@@ -1,14 +1,17 @@
 # PhysicsLab backend dependencies.
-# Compatible-release pins: each line accepts patch and minor updates within its
-# minor line, so security fixes land without editing this file. The floors below
-# were the current stable releases on PyPI as of 2026-08-07.
+#
+# Floors are the newest releases that still declare Python 3.9 support, verified
+# against each release's requires_python on PyPI (2026-08-07). The local
+# interpreter is 3.9.6, so newer releases resolve away:
+#   fastapi >=0.129 and uvicorn >=0.40 and python-dotenv 1.2.2 all need >=3.10.
+# Compatible-release pins, so patch updates land without editing this file.
 
-fastapi~=0.141.0
+fastapi~=0.128.0
 
 # [standard] extras pull in watchfiles, which `uvicorn main:app --reload` needs.
-uvicorn[standard]~=0.52.0
+uvicorn[standard]~=0.39.0
 
-# Not used until Phase 3.2 (Claude API wiring). Pinned now so the environment is
-# ready and the version is a deliberate choice, not whatever pip resolves later.
+# Not used until Phase 3.2 (Claude API wiring). 0.121.0 is the current release
+# and already supports 3.9 — no downgrade needed for the interpreter.
 anthropic~=0.121.0
 python-dotenv~=1.2.0
