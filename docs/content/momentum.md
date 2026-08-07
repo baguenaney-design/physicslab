@@ -36,7 +36,7 @@ PENDING — Anay drafting
 
 **(i)** Use Newton's Third Law and Second Law to deduce why the change in momentum of the golf ball is equal and opposite to the change in momentum of the stationary ball during the collision. **[3]**
 
-**(ii)** The variation of force acting on the golf ball F with time t during the collision is shown in the graph below. Show that the magnitude of the change in momentum of the golf ball is approximately 0.09 kg·m/s. **[2]**
+**(ii)** The variation of force acting on the golf ball F with time t during the collision is shown in the graph below. Show that the magnitude of the change in momentum of the golf ball is approximately 0.11 kg·m/s. **[2]**
 
 **(iii)** Calculate the speed of the golf ball just after the collision. **[3]**
 
@@ -44,4 +44,4 @@ PENDING — Anay drafting
 
 **Total: 12 marks**
 
-Note: Part (b)(ii) requires an F-t graph image. Current simulation resolves collisions instantaneously (single frame) and cannot generate a live F-t curve. Static graph image needed here, or defer this sub-part until simulation is upgraded to model contact duration.
+Note: Part (b)(ii) requires an F-t graph image. The area under the curve must come to approximately 0.11 N·s. Current simulation resolves collisions instantaneously (single frame) and cannot generate a live F-t curve. Static graph image needed here, or defer this sub-part until simulation is upgraded to model contact duration.
