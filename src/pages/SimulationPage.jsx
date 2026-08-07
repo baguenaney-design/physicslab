@@ -2,9 +2,10 @@ import { useRef, useState } from 'react'
 import MomentumCanvas from '../simulations/momentum/MomentumCanvas'
 import Controls from '../simulations/momentum/Controls'
 import Readout from '../simulations/momentum/Readout'
+import ContentPanel from '../simulations/momentum/ContentPanel'
 
 // Section label for the right column. Sections are named even while empty so the
-// layout reads correctly before ContentPanel (phase 2) and ChatPanel (phase 3) land.
+// layout reads correctly before ChatPanel (phase 3) lands.
 function SectionLabel({ children }) {
   return (
     <div
@@ -85,7 +86,7 @@ function SimulationPage() {
           }}
         >
           <SectionLabel>Concept</SectionLabel>
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} />
+          <ContentPanel />
         </div>
 
         <div
