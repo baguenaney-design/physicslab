@@ -14,7 +14,7 @@ content — the reviewed summary *is* the system prompt.
 From the `backend/` directory:
 
 ```bash
-# 1. Create a virtual environment (Python 3.11+)
+# 1. Create a virtual environment (Python 3.9+)
 python3 -m venv .venv
 source .venv/bin/activate
 
