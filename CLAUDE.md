@@ -204,3 +204,15 @@ This is non-negotiable. It is what makes the AI defensible to teachers and depar
 - Beyond the Classroom extension for momentum — add a note explaining that perfectly inelastic collisions are modelled as instantaneous in AP/IB but in reality occur over milliseconds. Real collision involves deformation, heat generation, and sound release at the molecular level. The simulation's instantaneous KE loss is physically correct for the model but a simplification of reality. This distinction is worth exploring for IB HL and AP-C students.
 - Beyond the Classroom mode for momentum — 3Blue1Brown pi collision demo. Walled version with mass ratio slider that produces digits of pi via collision count. Optional showcase feature separate from the main isolated-system simulation.
 - Upgrade momentum simulation to model brief contact duration during collision (currently instantaneous). Would enable live F-t curve generation, letting practice questions reference the student's actual simulation output. Phase 1.5 revisit — requires reworking collision resolution from single-frame to short interpolated force pulse.
+
+### External Libraries
+
+Deferred UI libraries for editorial polish (never inside simulations):
+
+1. **React Bits** (reactbits.dev) — copy-paste animated components for landing page text reveals and scroll effects. Zero dependencies.
+2. **Skiper UI** — niche animated components for standout landing moments.
+
+Both restricted to editorial register only. Introduce during Phase 7 (landing page polish), not before.
+
+3. **motion.dev** — React hover/drag/layout transitions, consider for Phase 4 curriculum map interactions.
+4. **Recharts** — if charts are needed later (F-t curves, projectile trajectories), this is the default choice.
