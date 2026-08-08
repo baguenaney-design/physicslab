@@ -204,6 +204,7 @@ This is non-negotiable. It is what makes the AI defensible to teachers and depar
 - Beyond the Classroom extension for momentum — add a note explaining that perfectly inelastic collisions are modelled as instantaneous in AP/IB but in reality occur over milliseconds. Real collision involves deformation, heat generation, and sound release at the molecular level. The simulation's instantaneous KE loss is physically correct for the model but a simplification of reality. This distinction is worth exploring for IB HL and AP-C students.
 - Beyond the Classroom mode for momentum — 3Blue1Brown pi collision demo. Walled version with mass ratio slider that produces digits of pi via collision count. Optional showcase feature separate from the main isolated-system simulation.
 - Upgrade momentum simulation to model brief contact duration during collision (currently instantaneous). Would enable live F-t curve generation, letting practice questions reference the student's actual simulation output. Phase 1.5 revisit — requires reworking collision resolution from single-frame to short interpolated force pulse.
+- ChatPanel currently renders AI responses as plain text. Once Phase 3.3 wires real Claude API streaming, upgrade ChatPanel to render LaTeX via KaTeX — but with streaming-safe logic that buffers incomplete $...$ blocks until they close. ContentPanel's renderInline is not reusable here because it assumes complete strings.
 
 ### External Libraries
 
