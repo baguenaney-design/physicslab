@@ -3,9 +3,9 @@ import MomentumCanvas from '../simulations/momentum/MomentumCanvas'
 import Controls from '../simulations/momentum/Controls'
 import Readout from '../simulations/momentum/Readout'
 import ContentPanel from '../simulations/momentum/ContentPanel'
+import ChatPanel from '../simulations/momentum/ChatPanel'
 
-// Section label for the right column. Sections are named even while empty so the
-// layout reads correctly before ChatPanel (phase 3) lands.
+// Section label for the right column.
 function SectionLabel({ children }) {
   return (
     <div
@@ -33,6 +33,9 @@ function SimulationPage() {
     mode: 'elastic',
   })
   const readoutRef = useRef(null)
+  // latest frame, held in a ref for the same reason: ChatPanel reads it once per
+  // message sent, so there is no reason to re-render on every frame for it
+  const frameRef = useRef(null)
 
   const handleControlsChange = (partial) => {
     setSimState((prev) => ({ ...prev, ...partial }))
@@ -42,6 +45,7 @@ function SimulationPage() {
   // readout's imperative handle so animation does not trigger re-renders
   const handleFrame = (frame) => {
     readoutRef.current?.update(frame)
+    frameRef.current = frame
   }
 
   return (
@@ -63,7 +67,7 @@ function SimulationPage() {
         <Controls {...simState} onChange={handleControlsChange} />
       </div>
 
-      {/* Right: live readout, then placeholders for phases 2 and 3 */}
+      {/* Right: live readout, concept content, AI tutor */}
       <div
         style={{
           flex: '0 0 40%',
@@ -100,7 +104,7 @@ function SimulationPage() {
           }}
         >
           <SectionLabel>AI Tutor</SectionLabel>
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} />
+          <ChatPanel simState={simState} frameRef={frameRef} />
         </div>
       </div>
     </div>

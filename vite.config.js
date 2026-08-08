@@ -72,6 +72,12 @@ function katexSurrogateFix() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), katexSurrogateFix()],
+  // The FastAPI backend runs separately on :8000. Proxying keeps the frontend
+  // same-origin in dev, so ChatPanel can fetch the relative path '/api/chat'
+  // and the CORS config in backend/main.py is only exercised in production.
+  server: {
+    proxy: { '/api': 'http://127.0.0.1:8000' },
+  },
   // The dependency pre-bundler runs its own rolldown pass and does not pick up `plugins`,
   // so the same fix has to be registered there for the dev server.
   optimizeDeps: {

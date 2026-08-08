@@ -33,6 +33,10 @@ function createInitialSimState(velocityA, velocityB) {
     finished: false, // true once the run has ended at an edge or come to rest
     settle: null, // set while the run is easing to its final stop
     keLoss: null,
+    // Observational only — reported to the AI tutor via onFrame so it knows
+    // whether the student has actually run the collision yet. Deliberately not
+    // part of the collision gate in step(); see the comment there.
+    collided: false,
   }
 }
 
@@ -141,6 +145,12 @@ function MomentumCanvas({
         momentumB: massB * sim.v2,
         totalMomentum: massA * sim.v1 + massB * sim.v2,
         keLoss: sim.keLoss,
+        // live velocities and collision state — consumed by ChatPanel so the
+        // tutor can reference what the student is actually looking at. Readout
+        // ignores these fields.
+        v1: sim.v1,
+        v2: sim.v2,
+        collided: sim.collided,
       })
     }
   }
@@ -175,6 +185,7 @@ function MomentumCanvas({
         const { v1f, v2f } = collide(massA, sim.v1, massB, sim.v2)
         sim.v1 = v1f
         sim.v2 = v2f
+        sim.collided = true
 
         if (mode === 'inelastic') {
           const keBefore = kineticEnergy(massA, uBeforeA) + kineticEnergy(massB, uBeforeB)
