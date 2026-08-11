@@ -74,19 +74,19 @@ D) $\frac{4}{3}Mv^2$
 
 A lab cart of mass $m$ is free to move to the left or right on a straight, horizontal track with negligible friction. The cart is at rest at time $t = 0$. A single, horizontal applied force, which may or may not vary over time, is then exerted on the cart. The resulting momentum $p$ of the cart is shown as a function of $t$ in Figure 2, where the positive direction is taken to be toward the right. The momentum reaches a maximum of $p_\text{max}$ at $t = t_1$.
 
-[Figure 1: the lab cart at rest on the horizontal track]
+[Figure 1: a cart of mass $m$ at rest on a horizontal track](/content/momentum/ap-frq-fig1-cart-setup.png)
 
-[Figure 2: momentum against time — a triangular profile rising linearly to $p_\text{max}$ at $t_1$, then falling linearly back to zero at $2t_1$]
+[Figure 2: momentum against time — rising linearly from zero to $p_\text{max}$ at $t_1$, falling linearly back to zero at $1.5t_1$, then remaining at zero until $2t_1$](/content/momentum/ap-frq-fig2-momentum-time-graph.png)
 
 **(a)** The dots in Figure 3 represent the cart at times $t = 0.9t_1$ and $t = 1.1t_1$. On each dot, draw and label the forces (not components) exerted on the cart at the indicated time. Each force must be represented by a distinct arrow starting on, and pointing away from, the appropriate dot. Relative arrow lengths should reflect relative force magnitudes.
 
-[Figure 3: two dots labelled $t = 0.9t_1$ and $t = 1.1t_1$]
+[Figure 3: two empty grids, each with a single dot at its centre, labelled $t = 0.9t_1$ and $t = 1.1t_1$](/content/momentum/ap-frq-fig3-force-diagram-dots.png)
 
 **(b)** Derive an expression for $\Delta x_f$, the final displacement of the cart at time $2t_1$. Express your answer in terms of $m$, $p_\text{max}$, $t_1$, and physical constants, as appropriate.
 
 **(c)** On the grid in Figure 4, sketch a graph of the acceleration as a function of $t$.
 
-[Figure 4: an empty grid with axes labelled $t$ and $a$]
+[Figure 4: an empty grid with a horizontal axis labelled $t$, marked at $0$, $t_1$ and $2t_1$, and a vertical axis labelled Acceleration with zero at the origin](/content/momentum/ap-frq-fig4-acceleration-grid.png)
 
 **Solutions:**
 
@@ -95,8 +95,6 @@ A lab cart of mass $m$ is free to move to the left or right on a straight, horiz
 **(b)** Since $v(t) = p(t)/m$, the displacement is $\Delta x_f = \int_0^{2t_1} v(t)\,dt = \frac{1}{m}\int_0^{2t_1} p(t)\,dt$. The $p$–$t$ curve forms a triangle with base $2t_1$ and peak height $p_\text{max}$, so its area is $\frac{1}{2}(2t_1)(p_\text{max}) = p_\text{max}t_1$. Therefore $\Delta x_f = \frac{p_\text{max}t_1}{m}$.
 
 **(c)** Since $a(t) = \frac{1}{m}\frac{dp}{dt}$, the acceleration is $\frac{1}{m}$ times the slope of the $p$–$t$ graph. From $t = 0$ to $t = t_1$ the slope is a constant $+\frac{p_\text{max}}{t_1}$, so $a = +\frac{p_\text{max}}{mt_1}$ — a horizontal line above the axis. From $t = t_1$ to $t = 2t_1$ the slope is a constant $-\frac{p_\text{max}}{t_1}$, so $a = -\frac{p_\text{max}}{mt_1}$ — a horizontal line below the axis. The transition at $t = t_1$ is an instantaneous jump.
-
-Note: Figures 1–4 need image files. Yani will supply them as PNG or JPG for public/content/momentum/.
 
 ### IB Paper 2 Written Response
 *Adapted from IB Physics SL Paper 2 style — collision analysis*

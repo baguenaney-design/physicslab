@@ -30,9 +30,10 @@ const TOTAL_RE = /^\*\*Total:/
 const OPTION_RE = /^([A-Z])\)\s*(.*)$/
 const PENDING_RE = /^PENDING\b/
 const TABLE_SEPARATOR_RE = /^[\s|:-]+$/
-// A figure the question refers to but that has no image file yet. The caption is the authored
-// description of what the image must show, so the slot stays reviewable before the art lands.
-const FIGURE_RE = /^\[(Figure\s+\d+):\s*([\s\S]+)\]$/
+// A figure the question refers to. The trailing (path) is optional: with it the image renders,
+// without it the panel draws a pending slot instead, so a figure can be authored before its art
+// exists. The caption doubles as the image's alt text and must describe what the figure shows.
+const FIGURE_RE = /^\[(Figure\s+\d+):\s*([\s\S]+?)\](?:\((\S+)\))?$/
 // Everything after this marker is worked solution rather than question. AP FRQs carry one
 // solution per part, which does not fit the single **Answer:** line an MCQ uses.
 const SOLUTIONS_RE = /^\*\*Solutions?:?\*\*$/
@@ -112,7 +113,14 @@ function classifyBlock(block, question) {
     return null
   }
   const figure = block.match(FIGURE_RE)
-  if (figure) return { type: 'figure', label: figure[1].trim(), caption: figure[2].trim() }
+  if (figure) {
+    return {
+      type: 'figure',
+      label: figure[1].trim(),
+      caption: figure[2].trim(),
+      src: figure[3] ? figure[3].trim() : null,
+    }
+  }
   if (block.startsWith('|')) return parseTable(block)
   if (TOTAL_RE.test(block)) return { type: 'total', text: block.replace(/\*\*/g, '').trim() }
   if (PART_RE.test(block)) return parsePart(block)

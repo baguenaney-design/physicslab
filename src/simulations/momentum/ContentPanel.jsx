@@ -212,26 +212,58 @@ function PendingNote({ text, id }) {
   )
 }
 
-// A figure the question refers to but whose image file has not been supplied yet. The slot is
-// drawn rather than hidden so the question reads as incomplete — the caption states what the
-// image must show, which is what Peter reviews against.
+// Exam figures are black-line diagrams on white, so they sit on the editorial background rather
+// than the instrument one — a document inset inside the console, the same move the content panel
+// makes with its typography. Reproducing them on a dark surface would invert the linework.
 function FigureSlot({ block, id }) {
+  if (!block.src) {
+    return (
+      <div
+        style={{
+          margin: '0 0 12px',
+          padding: '12px 14px',
+          border: '1px dashed var(--instrument-grid)',
+          borderRadius: 'var(--radius-max)',
+        }}
+      >
+        <div style={{ ...microLabel, color: 'var(--editorial-text-secondary)', marginBottom: '6px' }}>
+          {block.label} — image pending
+        </div>
+        <div style={{ ...prose, fontSize: '13px', color: 'var(--editorial-text-secondary)' }}>
+          {renderInline(block.caption, `${id}-cap`)}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div
-      style={{
-        margin: '0 0 12px',
-        padding: '12px 14px',
-        border: '1px dashed var(--instrument-grid)',
-        borderRadius: 'var(--radius-max)',
-      }}
-    >
-      <div style={{ ...microLabel, color: 'var(--editorial-text-secondary)', marginBottom: '6px' }}>
-        {block.label} — image pending
+    <figure style={{ margin: '0 0 12px' }}>
+      <div
+        style={{
+          background: 'var(--editorial-bg)',
+          border: '1px solid var(--editorial-border)',
+          borderRadius: 'var(--radius-max)',
+          padding: '10px',
+        }}
+      >
+        <img
+          src={block.src}
+          // The authored caption is the alt text: it is the description Peter reviews, so the
+          // screen-reader text and the reviewed description can never drift apart.
+          alt={block.caption.replace(/\$/g, '')}
+          style={{ display: 'block', width: '100%', maxWidth: '420px', height: 'auto', margin: '0 auto' }}
+        />
       </div>
-      <div style={{ ...prose, fontSize: '13px', color: 'var(--editorial-text-secondary)' }}>
-        {renderInline(block.caption, `${id}-cap`)}
-      </div>
-    </div>
+      <figcaption
+        style={{
+          ...microLabel,
+          color: 'var(--editorial-text-secondary)',
+          marginTop: '6px',
+        }}
+      >
+        {block.label}
+      </figcaption>
+    </figure>
   )
 }
 
