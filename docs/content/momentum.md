@@ -22,14 +22,14 @@ Impulse ($J = F\Delta t$) connects force and time to changes in momentum: $J = \
 
 **Question 1** *(IB Physics SL Paper 1 style — momentum vector)*
 
-A ball of mass m strikes a vertical wall with a speed v at an angle of θ to the wall. The ball rebounds at the same speed and angle. What is the change in the magnitude of the momentum of the ball?
+A ball of mass $m$ strikes a vertical wall with a speed $v$ at an angle of $\theta$ to the wall. The ball rebounds at the same speed and angle. What is the change in the magnitude of the momentum of the ball?
 
-A) 2mv sin θ  
-B) 2mv cos θ  
-C) 2mv  
+A) $2mv \sin\theta$  
+B) $2mv \cos\theta$  
+C) $2mv$  
 D) zero
 
-**Answer: D** — The ball's speed is unchanged, so the magnitude of momentum |p| = mv before and |p| = mv after. Change in magnitude is zero. Note: this is a common trap — students often confuse "change in magnitude of momentum" (asked here, = 0) with "magnitude of change in momentum" (which would be 2mv sin θ, since the component perpendicular to the wall reverses while the parallel component is unchanged).
+**Answer: D** — The ball's speed is unchanged, so the magnitude of momentum $|p| = mv$ before and $|p| = mv$ after. Change in magnitude is zero. Note: this is a common trap — students often confuse "change in magnitude of momentum" (asked here, $= 0$) with "magnitude of change in momentum" (which would be $2mv \sin\theta$, since the component perpendicular to the wall reverses while the parallel component is unchanged).
 
 **Question 2** *(IB Physics SL Paper 1 style — impulse and average force)*
 
@@ -42,7 +42,7 @@ Two eggs of equal mass fall from the same height onto a padded floor. One of the
 | C | Broken | Less change in momentum |
 | D | Bounces | Greater change in momentum |
 
-**Answer: D** — The bouncing egg changes momentum by 2mv (from -mv to +mv), while the broken egg changes momentum by only mv (from -mv to 0). Same collision time, greater impulse required means greater average force by F = Δp/Δt.
+**Answer: D** — The bouncing egg changes momentum by $2mv$ (from $-mv$ to $+mv$), while the broken egg changes momentum by only $mv$ (from $-mv$ to $0$). Same collision time, greater impulse required means greater average force by $F = \frac{\Delta p}{\Delta t}$.
 
 ### AP Multiple Choice
 
@@ -90,7 +90,7 @@ A lab cart of mass $m$ is free to move to the left or right on a straight, horiz
 
 **Solutions:**
 
-**(a)** At $t = 0.9t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (rightward — because $\frac{dp}{dt} > 0$ on the rising slope of the $p$–$t$ graph, so the net force points right). At $t = 1.1t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (leftward — because $\frac{dp}{dt} < 0$ on the falling slope, so the net force points left). The gravity and normal force magnitudes are unchanged between the two times.
+**(a)** At $t = 0.9t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (rightward — because $\frac{dp}{dt} > 0$ on the rising slope of the $p$–$t$ graph, so the net force points right). At $t = 1.1t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (leftward — because $\frac{dp}{dt} < 0$ on the falling slope, so the net force points left). The gravity and normal force magnitudes are unchanged between the two times. Both applied-force arrows should be drawn equal in length, because the $p$–$t$ graph's slope has equal magnitude on either side of $t_1$ (rising at $\frac{p_\text{max}}{t_1}$, then falling at $-\frac{p_\text{max}}{t_1}$). Only their direction differs.
 
 **(b)** Since $v(t) = p(t)/m$, the displacement is $\Delta x_f = \int_0^{2t_1} v(t)\,dt = \frac{1}{m}\int_0^{2t_1} p(t)\,dt$. The $p$–$t$ curve forms a triangle with base $2t_1$ and peak height $p_\text{max}$, so its area is $\frac{1}{2}(2t_1)(p_\text{max}) = p_\text{max}t_1$. Therefore $\Delta x_f = \frac{p_\text{max}t_1}{m}$.
 
