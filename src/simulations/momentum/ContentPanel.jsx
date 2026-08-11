@@ -191,8 +191,9 @@ function Part({ block, accent, id }) {
 }
 
 // The source keeps its authoring notes at the end of the file; the panel shows them against
-// the sub-part they describe. Currently this is the missing F-t graph for part (b)(ii).
-function PendingGraphNote({ text, id }) {
+// the sub-part they describe. Currently: the missing F-t graph for IB part (b)(ii), and the
+// missing AP FRQ figures.
+function PendingNote({ text, id }) {
   return (
     <div
       style={{
@@ -203,8 +204,33 @@ function PendingGraphNote({ text, id }) {
         borderRadius: 'var(--radius-max)',
       }}
     >
-      <div style={{ ...microLabel, color: 'var(--instrument-warning)', marginBottom: '4px' }}>Graph pending</div>
+      <div style={{ ...microLabel, color: 'var(--instrument-warning)', marginBottom: '4px' }}>
+        {/figure/i.test(text) ? 'Figures pending' : 'Graph pending'}
+      </div>
       <div style={{ ...prose, fontSize: '13px' }}>{renderInline(text, id)}</div>
+    </div>
+  )
+}
+
+// A figure the question refers to but whose image file has not been supplied yet. The slot is
+// drawn rather than hidden so the question reads as incomplete — the caption states what the
+// image must show, which is what Peter reviews against.
+function FigureSlot({ block, id }) {
+  return (
+    <div
+      style={{
+        margin: '0 0 12px',
+        padding: '12px 14px',
+        border: '1px dashed var(--instrument-grid)',
+        borderRadius: 'var(--radius-max)',
+      }}
+    >
+      <div style={{ ...microLabel, color: 'var(--editorial-text-secondary)', marginBottom: '6px' }}>
+        {block.label} — image pending
+      </div>
+      <div style={{ ...prose, fontSize: '13px', color: 'var(--editorial-text-secondary)' }}>
+        {renderInline(block.caption, `${id}-cap`)}
+      </div>
     </div>
   )
 }
@@ -228,13 +254,56 @@ function Answer({ answer, accent, id }) {
   )
 }
 
+// One markdown block from the parser. Shared by the question body and the worked solution so
+// a solution's **(a)** part is laid out identically to the **(a)** it answers.
+function renderBlock(block, id, accent) {
+  if (block.type === 'options') return <Options key={id} items={block.items} id={id} />
+  if (block.type === 'table') return <Table key={id} header={block.header} rows={block.rows} id={id} />
+  if (block.type === 'part') return <Part key={id} block={block} accent={accent} id={id} />
+  if (block.type === 'figure') return <FigureSlot key={id} block={block} id={id} />
+  if (block.type === 'total') {
+    return (
+      <div key={id} style={{ fontFamily: MONO, fontSize: '12px', color: 'var(--editorial-text-secondary)', marginTop: '4px' }}>
+        {block.text}
+      </div>
+    )
+  }
+  return <Paragraph key={id} text={block.text} id={id} />
+}
+
+function SolutionPanel({ blocks, accent, id }) {
+  return (
+    <div
+      style={{
+        marginTop: '10px',
+        padding: '10px 12px',
+        borderLeft: `2px solid ${accent}`,
+        background: 'var(--instrument-panel)',
+        borderRadius: 'var(--radius-max)',
+      }}
+    >
+      <div style={{ ...microLabel, color: accent, marginBottom: '6px' }}>Solutions</div>
+      {blocks.map((block, i) => renderBlock(block, `${id}-sol${i}`, accent))}
+    </div>
+  )
+}
+
 function Question({ question, accent, isFirst }) {
   const [revealed, setRevealed] = useState(false)
 
-  // Notes attach to the sub-part they describe; anything unmatched falls to the end.
-  const noteAnchor = question.blocks.findIndex((b) => b.type === 'part' && /graph/i.test(b.text))
+  const solution = question.solution || []
+  const hasReveal = Boolean(question.answer) || solution.length > 0
+  const revealNoun = question.answer ? 'answer' : 'solutions'
+
+  // Notes attach to the sub-part they describe; anything unmatched falls to the end. A note
+  // about figures is not about any one part, so it is left to fall through even when the
+  // question happens to contain a part that mentions a graph.
+  const anchorsToPart = question.notes.some((n) => /graph/i.test(n) && !/figure/i.test(n))
+  const noteAnchor = anchorsToPart
+    ? question.blocks.findIndex((b) => b.type === 'part' && /graph/i.test(b.text))
+    : -1
   const notes = question.notes.map((text, i) => (
-    <PendingGraphNote key={`${question.id}-note${i}`} text={text} id={`${question.id}-note${i}`} />
+    <PendingNote key={`${question.id}-note${i}`} text={text} id={`${question.id}-note${i}`} />
   ))
 
   return (
@@ -252,20 +321,7 @@ function Question({ question, accent, isFirst }) {
       )}
 
       {question.blocks.map((block, i) => {
-        const id = `${question.id}-b${i}`
-        const rendered = (() => {
-          if (block.type === 'options') return <Options key={id} items={block.items} id={id} />
-          if (block.type === 'table') return <Table key={id} header={block.header} rows={block.rows} id={id} />
-          if (block.type === 'part') return <Part key={id} block={block} accent={accent} id={id} />
-          if (block.type === 'total') {
-            return (
-              <div key={id} style={{ fontFamily: MONO, fontSize: '12px', color: 'var(--editorial-text-secondary)', marginTop: '4px' }}>
-                {block.text}
-              </div>
-            )
-          }
-          return <Paragraph key={id} text={block.text} id={id} />
-        })()
+        const rendered = renderBlock(block, `${question.id}-b${i}`, accent)
         return i === noteAnchor ? [rendered, ...notes] : rendered
       })}
 
@@ -285,7 +341,7 @@ function Question({ question, accent, isFirst }) {
         </div>
       )}
 
-      {question.answer && (
+      {hasReveal && (
         <>
           <button
             type="button"
@@ -302,9 +358,14 @@ function Question({ question, accent, isFirst }) {
               cursor: 'pointer',
             }}
           >
-            {revealed ? 'Hide answer' : 'Reveal answer'}
+            {revealed ? `Hide ${revealNoun}` : `Reveal ${revealNoun}`}
           </button>
-          {revealed && <Answer answer={question.answer} accent={accent} id={question.id} />}
+          {revealed &&
+            (question.answer ? (
+              <Answer answer={question.answer} accent={accent} id={question.id} />
+            ) : (
+              <SolutionPanel blocks={solution} accent={accent} id={question.id} />
+            ))}
         </>
       )}
     </div>

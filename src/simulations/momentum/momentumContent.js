@@ -16,8 +16,8 @@ import raw from '../../../docs/content/momentum.md?raw'
 //   equations      3
 //   questionGroups 4  →  IB Multiple Choice (2 questions, both with answers)
 //                        IB Paper 2 Written Response (1 question, 6 parts, no answer)
-//                        AP Multiple Choice (pending)
-//                        AP Free Response (pending)
+//                        AP Multiple Choice (2 questions, both with answers)
+//                        AP Free Response (1 question, 3 parts, 4 figures, 3 solution parts)
 
 const EXAM_TIP_RE = /^\*\*Exam Tips?:\*\*\s*/
 const QUESTION_RE = /^\*\*(Question\s+\d+)\*\*\s*(?:\*\(([^)]*)\)\*)?\s*$/
@@ -30,6 +30,12 @@ const TOTAL_RE = /^\*\*Total:/
 const OPTION_RE = /^([A-Z])\)\s*(.*)$/
 const PENDING_RE = /^PENDING\b/
 const TABLE_SEPARATOR_RE = /^[\s|:-]+$/
+// A figure the question refers to but that has no image file yet. The caption is the authored
+// description of what the image must show, so the slot stays reviewable before the art lands.
+const FIGURE_RE = /^\[(Figure\s+\d+):\s*([\s\S]+)\]$/
+// Everything after this marker is worked solution rather than question. AP FRQs carry one
+// solution per part, which does not fit the single **Answer:** line an MCQ uses.
+const SOLUTIONS_RE = /^\*\*Solutions?:?\*\*$/
 
 // Splits text on a heading marker ('## ' / '### '). Safe against deeper headings because
 // '### x'.startsWith('## ') is false — the third character is '#', not a space.
@@ -105,6 +111,8 @@ function classifyBlock(block, question) {
     question.notes.push(block.replace(NOTE_RE, '').trim())
     return null
   }
+  const figure = block.match(FIGURE_RE)
+  if (figure) return { type: 'figure', label: figure[1].trim(), caption: figure[2].trim() }
   if (block.startsWith('|')) return parseTable(block)
   if (TOTAL_RE.test(block)) return { type: 'total', text: block.replace(/\*\*/g, '').trim() }
   if (PART_RE.test(block)) return parsePart(block)
@@ -118,9 +126,18 @@ function classifyBlock(block, question) {
 function parseQuestions(groupId, body) {
   const questions = []
   let current = null
+  let inSolution = false
 
   const start = (label, citation) => {
-    current = { id: `${groupId}-q${questions.length + 1}`, label, citation, blocks: [], answer: null, notes: [] }
+    current = {
+      id: `${groupId}-q${questions.length + 1}`,
+      label,
+      citation,
+      blocks: [],
+      solution: [],
+      answer: null,
+      notes: [],
+    }
     questions.push(current)
     return current
   }
@@ -129,6 +146,11 @@ function parseQuestions(groupId, body) {
     const marker = block.match(QUESTION_RE)
     if (marker) {
       start(marker[1], marker[2] ? marker[2].trim() : null)
+      inSolution = false
+      continue
+    }
+    if (SOLUTIONS_RE.test(block)) {
+      inSolution = true
       continue
     }
     // A written-response group has no **Question N** marker — the whole group is one
@@ -143,7 +165,7 @@ function parseQuestions(groupId, body) {
       start(null, null)
     }
     const parsed = classifyBlock(block, current)
-    if (parsed) current.blocks.push(parsed)
+    if (parsed) (inSolution ? current.solution : current.blocks).push(parsed)
   }
 
   return questions

@@ -45,10 +45,58 @@ Two eggs of equal mass fall from the same height onto a padded floor. One of the
 **Answer: D** — The bouncing egg changes momentum by 2mv (from -mv to +mv), while the broken egg changes momentum by only mv (from -mv to 0). Same collision time, greater impulse required means greater average force by F = Δp/Δt.
 
 ### AP Multiple Choice
-PENDING — Anay drafting
+
+**Question 1** *(College Board AP Physics 1 Progress Check, Unit 4)*
+
+How does an air mattress protect a stunt person landing on the ground after a stunt?
+
+A) It reduces the kinetic energy loss of the stunt person.  
+B) It reduces the momentum change of the stunt person.  
+C) It increases the momentum change of the stunt person.  
+D) It lengthens the stopping time of the stunt person and reduces the force applied during the landing.
+
+**Answer: D** — By the impulse–momentum theorem, $J = F\Delta t = \Delta p$. The stunt person's change in momentum is fixed by their landing velocity and mass, so $\Delta p$ is the same with or without the mattress. Extending $\Delta t$ — a softer, longer stop — reduces the peak force $F$ required to deliver that same impulse. This is the same principle behind airbags and crumple zones.
+
+**Question 2** *(College Board AP Physics 1 Progress Check, Unit 4)*
+
+Two blocks of masses $M$ and $2M$ initially travel at the same speed $v$ but in opposite directions. They collide and stick together. How much mechanical energy is lost to other forms of energy during the collision?
+
+A) Zero  
+B) $\frac{1}{2}Mv^2$  
+C) $\frac{3}{4}Mv^2$  
+D) $\frac{4}{3}Mv^2$
+
+**Answer: D** — Take rightward as positive. Initial momentum is $p_i = M(+v) + 2M(-v) = -Mv$, and the combined mass after sticking is $3M$, so $v_f = -\frac{v}{3}$. Before the collision $\text{KE}_i = \frac{1}{2}Mv^2 + \frac{1}{2}(2M)v^2 = \frac{3}{2}Mv^2$. After the collision $\text{KE}_f = \frac{1}{2}(3M)\left(\frac{v}{3}\right)^2 = \frac{1}{6}Mv^2$. Energy lost $= \frac{3}{2}Mv^2 - \frac{1}{6}Mv^2 = \frac{4}{3}Mv^2$.
 
 ### AP Free Response
-PENDING — Anay drafting
+
+*College Board AP Physics 1 Unit 4 Progress Check, FRQ 2 — 15 points, suggested time 25 minutes*
+
+A lab cart of mass $m$ is free to move to the left or right on a straight, horizontal track with negligible friction. The cart is at rest at time $t = 0$. A single, horizontal applied force, which may or may not vary over time, is then exerted on the cart. The resulting momentum $p$ of the cart is shown as a function of $t$ in Figure 2, where the positive direction is taken to be toward the right. The momentum reaches a maximum of $p_\text{max}$ at $t = t_1$.
+
+[Figure 1: the lab cart at rest on the horizontal track]
+
+[Figure 2: momentum against time — a triangular profile rising linearly to $p_\text{max}$ at $t_1$, then falling linearly back to zero at $2t_1$]
+
+**(a)** The dots in Figure 3 represent the cart at times $t = 0.9t_1$ and $t = 1.1t_1$. On each dot, draw and label the forces (not components) exerted on the cart at the indicated time. Each force must be represented by a distinct arrow starting on, and pointing away from, the appropriate dot. Relative arrow lengths should reflect relative force magnitudes.
+
+[Figure 3: two dots labelled $t = 0.9t_1$ and $t = 1.1t_1$]
+
+**(b)** Derive an expression for $\Delta x_f$, the final displacement of the cart at time $2t_1$. Express your answer in terms of $m$, $p_\text{max}$, $t_1$, and physical constants, as appropriate.
+
+**(c)** On the grid in Figure 4, sketch a graph of the acceleration as a function of $t$.
+
+[Figure 4: an empty grid with axes labelled $t$ and $a$]
+
+**Solutions:**
+
+**(a)** At $t = 0.9t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (rightward — because $\frac{dp}{dt} > 0$ on the rising slope of the $p$–$t$ graph, so the net force points right). At $t = 1.1t_1$: gravity (downward), normal force (upward, equal magnitude), applied force (leftward — because $\frac{dp}{dt} < 0$ on the falling slope, so the net force points left). The gravity and normal force magnitudes are unchanged between the two times.
+
+**(b)** Since $v(t) = p(t)/m$, the displacement is $\Delta x_f = \int_0^{2t_1} v(t)\,dt = \frac{1}{m}\int_0^{2t_1} p(t)\,dt$. The $p$–$t$ curve forms a triangle with base $2t_1$ and peak height $p_\text{max}$, so its area is $\frac{1}{2}(2t_1)(p_\text{max}) = p_\text{max}t_1$. Therefore $\Delta x_f = \frac{p_\text{max}t_1}{m}$.
+
+**(c)** Since $a(t) = \frac{1}{m}\frac{dp}{dt}$, the acceleration is $\frac{1}{m}$ times the slope of the $p$–$t$ graph. From $t = 0$ to $t = t_1$ the slope is a constant $+\frac{p_\text{max}}{t_1}$, so $a = +\frac{p_\text{max}}{mt_1}$ — a horizontal line above the axis. From $t = t_1$ to $t = 2t_1$ the slope is a constant $-\frac{p_\text{max}}{t_1}$, so $a = -\frac{p_\text{max}}{mt_1}$ — a horizontal line below the axis. The transition at $t = t_1$ is an instantaneous jump.
+
+Note: Figures 1–4 need image files. Yani will supply them as PNG or JPG for public/content/momentum/.
 
 ### IB Paper 2 Written Response
 *Adapted from IB Physics SL Paper 2 style — collision analysis*
