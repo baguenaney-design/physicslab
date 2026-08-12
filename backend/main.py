@@ -1,9 +1,9 @@
 """PhysicsLab backend — thin AI proxy.
 
-Phase 3.1: skeleton only. The /api/chat endpoint is a placeholder that returns a
-fixed string. The Anthropic API is deliberately NOT wired up here — that is Phase
-3.2, and it is gated on Peter Syrenne's review of the momentum content, because
-the system prompt must contain the reviewed summary before the tutor can ship.
+The /api/chat endpoint is still a placeholder that returns a fixed string. The
+system prompt it will use is written — see backend/prompts/momentum.txt, grounded
+in the reviewed content in docs/content/momentum.md — but the Anthropic API is
+deliberately NOT wired up here. That is Phase 3.3.
 """
 
 from fastapi import FastAPI
@@ -52,6 +52,6 @@ def health():
 
 @app.post("/api/chat")
 def chat(request: ChatRequest):
-    # Placeholder. Phase 3.2 replaces this with a streamed Anthropic call whose
+    # Placeholder. Phase 3.3 replaces this with a streamed Anthropic call whose
     # system prompt is loaded from backend/prompts/{simulation}.txt.
-    return {"response": "AI tutor not yet wired — Phase 3.2 pending"}
+    return {"response": "AI tutor not yet wired — Phase 3.3 pending"}

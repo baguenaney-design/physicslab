@@ -145,7 +145,7 @@ Verify: run `uvicorn main:app --reload`, call the endpoint with curl, get a resp
 Write `backend/prompts/momentum.txt`. This is the most important prompt engineering you will do. Include:
 - The full Peter-reviewed momentum summary
 - AP Physics 1 learning objectives for momentum (Unit 4)
-- IB Physics Topic 2.4 assessment statements
+- IB Physics Topic A.2 Forces and momentum assessment statements
 - IB command term definitions relevant to this topic (state, explain, derive, calculate, discuss)
 - AP science practice conventions
 - Instruction: "You are a physics tutor helping a student understand momentum and impulse. The student is currently using an interactive simulation. Their current setup is provided in every message. Ground your responses in the content provided above. If a question falls outside this content, say so explicitly rather than guessing. Guide reasoning with questions where possible rather than giving direct answers."

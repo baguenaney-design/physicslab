@@ -4,10 +4,10 @@ A thin FastAPI proxy between the React frontend and the Anthropic Claude API.
 It exists so the API key never reaches the browser and so every tutor call is
 grounded in teacher-reviewed content server-side.
 
-**Current status: Phase 3.1 — skeleton.** `/api/chat` returns a hardcoded
-placeholder. The Claude API is not wired up and no system prompts exist yet.
-That is Phase 3.2, which is gated on Peter Syrenne's review of the momentum
-content — the reviewed summary *is* the system prompt.
+**Current status: Phase 3.2 — system prompt written, API not yet wired.**
+`prompts/momentum.txt` holds the momentum tutor's system prompt, grounded in the
+reviewed content in `docs/content/momentum.md`. `/api/chat` still returns a
+hardcoded placeholder — wiring the streamed Claude call is Phase 3.3.
 
 ## Setup
 
@@ -56,7 +56,7 @@ curl -X POST http://127.0.0.1:8000/api/chat \
     "sim_state": {"m1": 2, "v1": 3, "m2": 3, "v2": -1, "mode": "elastic", "collided": false},
     "simulation": "momentum"
   }'
-# {"response":"AI tutor not yet wired — Phase 3.2 pending"}
+# {"response":"AI tutor not yet wired — Phase 3.3 pending"}
 ```
 
 ## Endpoints
@@ -64,7 +64,7 @@ curl -X POST http://127.0.0.1:8000/api/chat \
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/health` | Liveness check. Returns `{"status": "ok"}`. |
-| POST | `/api/chat` | Tutor request. Placeholder until Phase 3.2. |
+| POST | `/api/chat` | Tutor request. Placeholder until Phase 3.3. |
 
 ### POST /api/chat body
 
