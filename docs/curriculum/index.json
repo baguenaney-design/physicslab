@@ -1,0 +1,25 @@
+{
+  "_notes": [
+    "Curriculum index for PhysicsLab. Consumed by the AI tutor backend — see backend/prompts/momentum.txt, section 3 — and later by the curriculum map pages.",
+    "POPULATE ONLY FROM OFFICIAL SOURCE DOCUMENTS. The College Board AP Physics Course and Exam Description PDFs, and the IB Physics Guide (first teaching 2023). Nothing else counts as a source.",
+    "DO NOT PARAPHRASE AND DO NOT INVENT. Unit names, topic names and equations are copied as they appear in the official document, not reworded. If a field cannot be filled from an official source, leave it empty rather than guessing. A wrong syllabus reference in a tutor answer can cost a student exam marks.",
+    "POPULATION ORDER: momentum-adjacent topics first — kinematics, forces, energy, impulse, and circular motion. These are the topics a momentum question is most likely to cross into, and the tutor needs them before its topic citation rule can mark anything as 'not yet covered' accurately.",
+    "Full population happens incrementally as more simulations are built. An empty or partial index is expected. Until this file is populated, backend/prompts/momentum.txt carries an inline topic roster that stands in for it; once populated, this file supersedes that roster in full.",
+    "EQUATIONS ARE LATEX so the frontend can render them with KaTeX. JSON requires every backslash to be escaped, so a LaTeX \\Delta p is stored with a doubled backslash here and reaches KaTeX as a single one. Symbol choice must match the AP formula sheet and the IB data booklet — no substitutions.",
+    "covered_by lists simulation slugs, matching the folder names under src/simulations/ and the /sim/<slug> routes. The only live simulation today is \"momentum\"."
+  ],
+
+  "_schema": {
+    "id": "Unique kebab-case slug for this topic entry. Stable once assigned — related_topics elsewhere in the file point at it.",
+    "curriculum": "\"IB\" or \"AP\".",
+    "course": "One of: \"IB Physics SL/HL\", \"AP Physics 1\", \"AP Physics 2\", \"AP Physics C: Mechanics\", \"AP Physics C: E&M\".",
+    "unit": "Unit name exactly as it appears in the official document. IB uses lettered sections (\"A. Space, time and motion\"); AP uses numbered units (\"Unit 4: Linear Momentum\").",
+    "topic": "Specific topic name exactly as it appears in the official document.",
+    "description": "One-line summary of what the topic covers. This is the one field written rather than copied — keep it to a single sentence.",
+    "equations": "Array of LaTeX strings, backslashes escaped for JSON. Empty array if the official document lists none for this topic.",
+    "covered_by": "Array of simulation slugs that teach this topic. [\"momentum\"] where the momentum simulation covers it, [] where nothing does yet.",
+    "related_topics": "Array of other topic ids in this file. Used to guide a student from one topic to the next; leave empty rather than forcing a link."
+  },
+
+  "topics": []
+}
