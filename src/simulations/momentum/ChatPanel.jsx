@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Phase 3.4 — the tutor UI. The backend endpoint it talks to is still the Phase
-// 3.1 placeholder: it returns a fixed JSON string rather than a streamed reply.
-// The request payload and the response reader here are both written to the final
-// contract, so wiring the Anthropic call in Phase 3.3 needs no change in this file.
+// Phase 3.4 — the tutor UI. The backend streams a real Claude reply; the reader
+// below handles both that and the older single-JSON shape.
 
 const DISCLAIMER = 'AI responses are grounded in reviewed content. Always verify against your syllabus.'
+
+// How many prior messages travel with each request. Enough for the response-mode
+// menu in backend/prompts/momentum.txt to hold across a few follow-ups without
+// resending a whole session.
+const HISTORY_LIMIT = 10
 
 // Key names match IMPLEMENTATION_PLAN 3.1 and the ChatRequest docstring in
 // backend/main.py — subscript notation, not the frontend's massA/velocityA.
@@ -22,6 +25,30 @@ function buildSimState(simState, frame) {
     post_v1: frame?.collided ? frame.v1 : null,
     post_v2: frame?.collided ? frame.v2 : null,
   }
+}
+
+// Prior turns, in the role names the Anthropic API expects. Without these the
+// tutor cannot honour its response-mode menu — a student answering "2" means
+// nothing detached from the question it follows.
+//
+// Dropped on the way out: error placeholders and empty replies, which are
+// client-side text rather than turns the model produced, and which the API
+// rejects as empty content.
+function buildHistory(messages) {
+  const turns = messages
+    .filter((m) => !m.isError && m.content.trim().length > 0)
+    .map((m) => ({
+      role: m.role === 'student' ? 'user' : 'assistant',
+      content: m.content,
+    }))
+
+  const recent = turns.slice(-HISTORY_LIMIT)
+
+  // A conversation may not open on an assistant turn, and slicing a fixed count
+  // off the end lands on one half the time.
+  while (recent.length > 0 && recent[0].role !== 'user') recent.shift()
+
+  return recent
 }
 
 function Message({ role, content, isError }) {
@@ -102,6 +129,9 @@ function ChatPanel({ simState, frameRef }) {
           message,
           sim_state: buildSimState(simState, frameRef.current),
           simulation: 'momentum',
+          // `messages` here is the pre-send value captured by this closure, so it
+          // holds the completed turns and not the pair just queued above.
+          history: buildHistory(messages),
         }),
       })
 
