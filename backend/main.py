@@ -70,15 +70,15 @@ class ChatRequest(BaseModel):
     """Body of a tutor request.
 
     sim_state is intentionally an open dict: each simulation reports a different
-    shape (momentum sends m1/v1/m2/v2/mode/collided/post_v1/post_v2 — see
-    buildSimState in ChatPanel.jsx — projectile will send angle and launch speed).
-    The backend does not validate its contents.
+    shape. Momentum sends m1/v1/m2/v2/mode/collided/post_v1/post_v2; projectile
+    sends v0/angle_deg/g plus the live flight fields. The per-simulation mappers
+    live in buildSimState on each entry in src/simulations/registry.js, and the
+    matching renderers are in STATE_FORMATTERS below. The backend does not
+    validate the contents.
 
-    history is optional and currently always empty: ChatPanel does not send prior
-    turns yet. Until it does, every request is single-turn, which means the
-    response-mode menu in momentum.txt cannot work — the tutor never sees which
-    mode the student picked. Nothing here needs to change when the frontend
-    starts sending it.
+    history carries prior turns so the response-mode menu in the system prompts
+    can hold across follow-ups — a student answering "2" means nothing detached
+    from the question it follows. ChatPanel caps it; see HISTORY_LIMIT there.
     """
 
     message: str
@@ -100,18 +100,17 @@ def load_prompt(simulation: str) -> str:
     return (PROMPTS_DIR / "{}.txt".format(simulation)).read_text(encoding="utf-8")
 
 
-def format_message(sim_state: Dict[str, Any], student_message: str) -> str:
-    """Render the simulation state as readable text, per TECHNICAL_DESIGN 3.4.
+def format_momentum_state(sim_state: Dict[str, Any]) -> List[str]:
+    """Momentum's state block: two blocks on a track, and whether they have hit.
 
-    Only the fields ChatPanel actually sends appear here. Momenta, total momentum
-    and KE loss are deliberately NOT computed: momentum.txt section 6 tells the
-    tutor those values are not supplied and must be derived from m and v, and
-    sending them anyway would contradict its own instructions.
+    Momenta, total momentum and KE loss are deliberately NOT computed here:
+    momentum.txt section 6 tells the tutor those values are not supplied and must
+    be derived from m and v, and sending them anyway would contradict its own
+    instructions.
     """
     collided = bool(sim_state.get("collided"))
 
     lines = [
-        "Current simulation state:",
         "- Block A: mass = {} kg, velocity = {} m/s".format(
             sim_state.get("m1"), sim_state.get("v1")
         ),
@@ -131,8 +130,69 @@ def format_message(sim_state: Dict[str, Any], student_message: str) -> str:
             "- Block B velocity after collision: {} m/s".format(sim_state.get("post_v2"))
         )
 
-    lines += ["", "Student's question:", student_message]
-    return "\n".join(lines)
+    return lines
+
+
+def format_projectile_state(sim_state: Dict[str, Any]) -> List[str]:
+    """Projectile's state block: the launch setup, and the flight if there is one.
+
+    Range, maximum height and time of flight are deliberately NOT computed, for
+    the same reason momentum's momenta are not — projectile.txt section 6 tells
+    the tutor to derive them from v0, angle and g and to show that working.
+
+    The live fields are null until the student presses Launch. Sending them as
+    zeros instead would read to the tutor as a projectile sitting motionless
+    mid-flight rather than one that has not been fired.
+    """
+    lines = [
+        "- Launch speed: {} m/s".format(sim_state.get("v0")),
+        "- Launch angle: {} degrees above the horizontal".format(
+            sim_state.get("angle_deg")
+        ),
+        "- Gravitational field strength: {} m/s^2".format(sim_state.get("g")),
+        "- No air resistance (closed-form model, level ground, launched from y = 0)",
+    ]
+
+    if not sim_state.get("launched"):
+        lines.append("- The student has not launched yet: there is no flight data.")
+        return lines
+
+    lines.append(
+        "- In flight: {}".format("yes" if sim_state.get("in_flight") else "no, it has landed")
+    )
+    lines.append("- Elapsed time since launch: {} s".format(sim_state.get("elapsed_s")))
+    lines.append("- Horizontal distance travelled: {} m".format(sim_state.get("x_m")))
+    lines.append("- Current height: {} m".format(sim_state.get("y_m")))
+    lines.append("- Horizontal velocity: {} m/s".format(sim_state.get("vx_ms")))
+    lines.append("- Vertical velocity: {} m/s".format(sim_state.get("vy_ms")))
+    lines.append("- Speed: {} m/s".format(sim_state.get("speed_ms")))
+    return lines
+
+
+# Each simulation reports a different state shape, so each needs its own renderer.
+# A simulation with a prompt file but no entry here still works — it just sends the
+# raw field list below, which is worse to read but never wrong.
+STATE_FORMATTERS = {
+    "momentum": format_momentum_state,
+    "projectile": format_projectile_state,
+}
+
+
+def format_message(
+    simulation: str, sim_state: Dict[str, Any], student_message: str
+) -> str:
+    """Render the simulation state as readable text, per TECHNICAL_DESIGN 3.4."""
+    formatter = STATE_FORMATTERS.get(simulation)
+    if formatter is None:
+        # Generic fallback. Deliberately not an error: a missing renderer should
+        # degrade the tutor's phrasing, not take the tutor down.
+        lines = ["- {} = {}".format(key, value) for key, value in sim_state.items()]
+    else:
+        lines = formatter(sim_state)
+
+    return "\n".join(
+        ["Current simulation state:"] + lines + ["", "Student's question:", student_message]
+    )
 
 
 async def stream_reply(
@@ -183,7 +243,9 @@ async def chat(request: ChatRequest):
     messages.append(
         {
             "role": "user",
-            "content": format_message(request.sim_state, request.message),
+            "content": format_message(
+                request.simulation, request.sim_state, request.message
+            ),
         }
     )
 

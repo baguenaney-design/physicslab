@@ -200,7 +200,7 @@ roadmap but not yet built — a student clicking it sees "Coming soon".
 --- IB PHYSICS (2023 syllabus, first teaching 2023) ---
 
 Section A — Space, time and motion
-  A.1  Kinematics ......................... not yet covered
+  A.1  Kinematics ......................... COVERED (projectile motion only)
   A.2  Forces and momentum ................ COVERED
   A.3  Work, energy and power ............. not yet covered
   A.4  Rigid body mechanics ............... not yet covered
@@ -236,7 +236,7 @@ Section E — Nuclear and quantum physics
 --- AP PHYSICS ---
 
 AP Physics 1 (algebra-based, seven units)
-  Unit 1  Kinematics ............................... not yet covered
+  Unit 1  Kinematics ............................... COVERED (projectile only)
   Unit 2  Force and Translational Dynamics ......... not yet covered
   Unit 3  Work, Energy, and Power .................. not yet covered
   Unit 4  Linear Momentum .......................... COVERED
@@ -520,8 +520,14 @@ Every one of those is a mechanism of momentum change.
 
 Off-topic: inclined planes, centripetal and circular motion, projectile motion,
 and anything else needing physics this simulation does not model — a ramp, a
-curved path, or gravity as the driving force. Those belong to their own future
-simulations. Cite them as not yet covered and give an outline only.
+curved path, or gravity as the driving force. Give an outline only and point the
+student at the simulation that owns the topic.
+
+Projectile motion is the exception to how you cite these: it now has its own
+PhysicsLab simulation and the roster marks IB A.1 and AP Unit 1 as COVERED for
+it. Cite it as covered, still outline only rather than teaching it here, and tell
+the student the projectile simulation is where it belongs. Everything else in the
+off-topic list is genuinely not yet covered.
 
 COMMAND TERMS
 When a student is working on exam technique, use IB command term conventions. The

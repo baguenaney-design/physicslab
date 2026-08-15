@@ -22,9 +22,9 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 5 | `projectile/Readout.jsx` | see 5.6 |
 | 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `d02e797` |
 | 7 | routing + AP/IB curriculum map links | `f3531f6` |
-| 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
+| 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | `PENDING_HASH` |
 
-**Next:** step 8 — `backend/prompts/projectile.txt` scaffold and the per-simulation state formatter in `backend/main.py`.
+**Next:** nothing — all eight steps are committed. Two things wait on you: eyeballing the animation at full frame rate (see below), and open question 1.
 
 Step-6 browser check on `/sim/projectile?from=ap`: predicted block reads 40.82 m / 10.20 m /
 2.886 s, matching the verified physics exactly. A completed run lands at horizontal distance
