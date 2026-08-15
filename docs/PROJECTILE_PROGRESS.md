@@ -20,7 +20,7 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 3 | `projectile/Controls.jsx` | `521b679` |
 | 4 | `projectile/ProjectileCanvas.jsx` | `794cf3f` |
 | 5 | `projectile/Readout.jsx` | see 5.6 |
-| 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `PENDING_HASH` |
+| 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `d02e797` |
 | 7 | routing + AP/IB curriculum map links | — |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
