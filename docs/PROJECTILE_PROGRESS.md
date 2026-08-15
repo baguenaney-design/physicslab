@@ -22,7 +22,7 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 5 | `projectile/Readout.jsx` | see 5.6 |
 | 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `d02e797` |
 | 7 | routing + AP/IB curriculum map links | `f3531f6` |
-| 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | `PENDING_HASH` |
+| 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | `cb68f6e` |
 
 **Next:** nothing — all eight steps are committed. Two things wait on you: eyeballing the animation at full frame rate (see below), and open question 1.
 
