@@ -21,10 +21,10 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 4 | `projectile/ProjectileCanvas.jsx` | `794cf3f` |
 | 5 | `projectile/Readout.jsx` | see 5.6 |
 | 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `d02e797` |
-| 7 | routing + AP/IB curriculum map links | — |
+| 7 | routing + AP/IB curriculum map links | `PENDING_HASH` |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
-**Next:** step 7 — routing and AP/IB curriculum map links.
+**Next:** step 8 — `backend/prompts/projectile.txt` scaffold and the per-simulation state formatter in `backend/main.py`.
 
 Step-6 browser check on `/sim/projectile?from=ap`: predicted block reads 40.82 m / 10.20 m /
 2.886 s, matching the verified physics exactly. A completed run lands at horizontal distance
@@ -40,9 +40,6 @@ advanced 0.03 s of simulated time), so the flight cannot be frame-stepped from h
 number and the x-axis pixel mapping check out, and the y mapping is the same expression on the
 same scale, but the parabola's shape has not been seen at speed. Open a real window and launch
 one.
-step 6, once its SimulationView exists; until then `/sim/projectile` redirects home, which is
-the correct behaviour for a slug that is not yet registered. Steps 3–5 build components that
-nothing renders yet — each still builds and lints clean on its own.
 
 Step-1 checks beyond the reference case: apex at t=T/2 has vy=0 and y=H; landing speed equals
 launch speed (20.00 m/s — no drag, so the flight is symmetric); complementary angles 30°/60°

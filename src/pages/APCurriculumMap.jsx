@@ -1,8 +1,10 @@
 import EditorialShell from '../components/ui/EditorialShell'
 import { CurriculumSection } from '../components/ui/TopicCard'
 
-// The four AP Physics courses. Linear Momentum in Physics 1 is the only topic
-// with a simulation built; everything else is greyed rather than hidden.
+// The four AP Physics courses. Kinematics and Linear Momentum in Physics 1 are
+// the only topics with a simulation built; everything else is greyed rather
+// than hidden. The same MECHANICS_UNITS list backs Physics C: Mechanics, which
+// is passed no links — the simulations are pitched at the algebra-based course.
 //
 // Unit numbers are asserted only for Physics 1 and C: Mechanics, whose seven
 // units are listed here in full. The Physics 2 and C: E&M entries are topic
@@ -31,7 +33,13 @@ const COURSES = [
   {
     heading: 'AP Physics 1',
     subheading: 'Algebra-based. Seven units.',
-    topics: numbered(MECHANICS_UNITS, { 'Linear Momentum': '/sim/momentum?from=ap' }),
+    // Kinematics links to the projectile simulation. The unit is broader than the simulation —
+    // it also covers 1-D motion and motion graphs — so the simulation's sidebar eyebrow names
+    // the narrower scope on arrival. See the projectile entry in src/simulations/registry.js.
+    topics: numbered(MECHANICS_UNITS, {
+      Kinematics: '/sim/projectile?from=ap',
+      'Linear Momentum': '/sim/momentum?from=ap',
+    }),
   },
   {
     heading: 'AP Physics 2',
@@ -71,7 +79,7 @@ function APCurriculumMap() {
             maxWidth: '620px',
           }}
         >
-          All four courses. One simulation is live so far — the rest are on the way.
+          All four courses. Two simulations are live so far — the rest are on the way.
         </p>
 
         {COURSES.map((course) => (
