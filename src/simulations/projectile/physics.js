@@ -120,11 +120,19 @@ export function maxHeight(v0, thetaDeg, g) {
 //
 // test: v0=20, θ=45°, g=9.8 → T = 2 × 20 × 0.70711 / 9.8 = 28.284 / 9.8 = 2.886 s ← REFERENCE CASE
 // test: v0=20, θ=90°, g=9.8 → T = 2 × 20 / 9.8 = 4.082 s  (longest flight for a given v0)
+// test: v0=20, θ=1°,  g=9.8 → T = 2 × 20 × 0.017452 / 9.8 = 0.0712 s (the shallowest the UI allows)
 // test: v0=20, θ=0°,  g=9.8 → T = 0.00 s  (see the note below — this is correct, not a bug)
 //
 // θ = 0 with y0 = 0 gives T = 0: a projectile launched horizontally from ground level is already
-// on the ground, so it has no flight. Callers must tolerate a zero-length run rather than
-// dividing by T.
+// on the ground, so it has no flight. That is the correct result for this model, not an error.
+//
+// It is a dead Launch button, though, so the UI does not offer it: the launch-angle slider is
+// floored at 1° (see Controls.jsx). The functions here are deliberately NOT clamped — this module
+// states the physics, and the physics at θ=0 is a zero-length flight. Guarding it here would mean
+// returning a number the equations do not give.
+//
+// Callers must therefore still tolerate T = 0, because v0 = 0 reaches it by the other route and
+// the speed slider does go to zero. ProjectileCanvas handles both in one branch at launch.
 export function timeOfFlight(v0, thetaDeg, g) {
   const theta = toRadians(thetaDeg)
   return (2 * v0 * Math.sin(theta)) / g

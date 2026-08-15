@@ -89,7 +89,13 @@ function Controls({ launchSpeed, launchAngle, gravity, onChange }) {
         <Slider
           label="Launch angle"
           value={launchAngle}
-          min={0}
+          // Floored at 1°, not 0°. A ground-level launch at exactly 0° has a time of flight of
+          // zero — correct physics for this model, but it makes Launch a dead button at the
+          // bottom of the slider, which reads as a broken control rather than as a result. The
+          // clamp is here in the UI and not in physics.js: the equations are right, it is the
+          // affordance that was wrong. 1° still shows the shallow-launch case (T = 0.07 s at
+          // 20 m/s on Earth) for a student who wants to see it.
+          min={1}
           max={90}
           step={1}
           unit="°"
