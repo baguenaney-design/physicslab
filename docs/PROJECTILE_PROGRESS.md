@@ -15,7 +15,7 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 |---|---|---|
 | pre | phase 4 momentum four-view shell (was uncommitted; committed as the Phase 5 restore point) | `49d1b6e` |
 | 0 | progress tracker | `dbae539` |
-| 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `11b1186` |
+| 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `f9487c7` |
 | 2 | shared shell: registry, ChatPanel → components/sim, contentParser | — |
 | 3 | `projectile/Controls.jsx` | — |
 | 4 | `projectile/ProjectileCanvas.jsx` | — |
