@@ -1,6 +1,8 @@
 function Slider({ label, value, min, max, step, unit, accentColor, onChange }) {
   return (
-    <div style={{ marginBottom: '16px' }}>
+    // flex:1 with minWidth:0 lets the four sliders share the control row evenly and keeps a long
+    // label from widening its own column
+    <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
         <span style={{ fontFamily: 'var(--instrument-body-font)', fontSize: '13px', color: 'var(--instrument-text)' }}>
           {label}
@@ -44,46 +46,54 @@ function Controls({ massA, velocityA, massB, velocityB, mode, onChange }) {
         borderTop: '1px solid var(--instrument-grid)',
       }}
     >
-      <Slider
-        label="Block A mass"
-        value={massA}
-        min={0.5}
-        max={6}
-        step={0.1}
-        unit="kg"
-        accentColor="var(--instrument-block-a)"
-        onChange={(v) => onChange({ massA: v })}
-      />
-      <Slider
-        label="Block A velocity"
-        value={velocityA}
-        min={0}
-        max={8}
-        step={0.1}
-        unit="m/s"
-        accentColor="var(--instrument-block-a)"
-        onChange={(v) => onChange({ velocityA: v })}
-      />
-      <Slider
-        label="Block B mass"
-        value={massB}
-        min={0.5}
-        max={6}
-        step={0.1}
-        unit="kg"
-        accentColor="var(--instrument-block-b)"
-        onChange={(v) => onChange({ massB: v })}
-      />
-      <Slider
-        label="Block B velocity"
-        value={velocityB}
-        min={-8}
-        max={0}
-        step={0.1}
-        unit="m/s"
-        accentColor="var(--instrument-block-b)"
-        onChange={(v) => onChange({ velocityB: v })}
-      />
+      {/* One row of four, beneath the track — the sliders read as a console strip rather than a
+          column beside the canvas.
+          The gap is sized off the narrowest supported viewport: at 1024px each slider gets
+          (1024 - 237 sidebar - 32 padding - 3 gaps) / 4, and the widest label/value pair
+          ("Block B velocity" against "-8.0 m/s") measures 159px. 24px gaps leave that ~12px of
+          slack; 32px leaves 6px, which a font fallback would eat and wrap the label. */}
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
+        <Slider
+          label="Block A mass"
+          value={massA}
+          min={0.5}
+          max={6}
+          step={0.1}
+          unit="kg"
+          accentColor="var(--instrument-block-a)"
+          onChange={(v) => onChange({ massA: v })}
+        />
+        <Slider
+          label="Block A velocity"
+          value={velocityA}
+          min={0}
+          max={8}
+          step={0.1}
+          unit="m/s"
+          accentColor="var(--instrument-block-a)"
+          onChange={(v) => onChange({ velocityA: v })}
+        />
+        <Slider
+          label="Block B mass"
+          value={massB}
+          min={0.5}
+          max={6}
+          step={0.1}
+          unit="kg"
+          accentColor="var(--instrument-block-b)"
+          onChange={(v) => onChange({ massB: v })}
+        />
+        <Slider
+          label="Block B velocity"
+          value={velocityB}
+          min={-8}
+          max={0}
+          step={0.1}
+          unit="m/s"
+          accentColor="var(--instrument-block-b)"
+          onChange={(v) => onChange({ velocityB: v })}
+        />
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span
           style={{

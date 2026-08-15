@@ -129,13 +129,10 @@ const Readout = forwardRef(function Readout({ massA, velocityA, massB, velocityB
   )
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        background: 'var(--instrument-panel)',
-        borderTop: '1px solid var(--instrument-grid)',
-      }}
-    >
+    // Card chrome — border, radius, the READOUT header — belongs to whatever mounts this. The
+    // readout carries no top rule of its own: inside the floating card in SimulationView it
+    // would read as a stray line under the header.
+    <div style={{ padding: '16px', background: 'var(--instrument-panel)' }}>
       <BarRow
         label="Momentum — Block A"
         color="var(--instrument-block-a)"

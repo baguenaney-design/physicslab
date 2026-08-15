@@ -1,25 +1,24 @@
-import { useState } from 'react'
 import { InlineMath, BlockMath } from 'react-katex'
-// KaTeX ships its own stylesheet and equations render unstyled without it. This is the first
-// component-level CSS import in the project — it lives here because ContentPanel is the only
-// consumer. .katex sets no colour, so equations inherit --instrument-text from their container.
+// KaTeX ships its own stylesheet and equations render unstyled without it. This module is the
+// single import site: ConceptPanel and PracticePanel both render through the primitives below,
+// so importing it once here covers both. .katex sets no colour, so equations inherit
+// --instrument-text from their container.
 import 'katex/dist/katex.min.css'
-import content from './momentumContent.js'
 
 // Curriculum accents map to the two block colours used on the canvas, so a student reads the
-// same amber/blue language in the content panel as in the simulation.
-const ACCENT = {
+// same amber/blue language in the content panels as in the simulation.
+export const ACCENT = {
   IB: 'var(--instrument-block-b)', // amber — Block B
   AP: 'var(--instrument-block-a)', // blue  — Block A
 }
 
-const BODY = 'var(--instrument-body-font)'
-const MONO = 'var(--instrument-data-font)'
+export const BODY = 'var(--instrument-body-font)'
+export const MONO = 'var(--instrument-data-font)'
 
 // The editorial feel inside the instrument register comes from typography, not from a light
 // background: a longer measure, looser leading and real paragraph spacing, against the tight
 // 13px rhythm of Controls and Readout.
-const prose = {
+export const prose = {
   fontFamily: BODY,
   fontSize: '14px',
   lineHeight: 1.65,
@@ -27,14 +26,14 @@ const prose = {
   maxWidth: '65ch',
 }
 
-const card = {
+export const card = {
   background: 'var(--instrument-bg)',
   border: '1px solid var(--instrument-grid)',
   borderRadius: 'var(--radius-max)',
   padding: '14px 16px',
 }
 
-const microLabel = {
+export const microLabel = {
   fontFamily: MONO,
   fontSize: '11px',
   letterSpacing: '0.06em',
@@ -66,7 +65,7 @@ function renderEmphasis(text, keyPrefix) {
 
 // Splits a text run into KaTeX and non-KaTeX segments. $$...$$ is matched before $...$ so a
 // display block is never read as two empty inline spans.
-function renderInline(text, keyPrefix) {
+export function renderInline(text, keyPrefix) {
   const out = []
   const re = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g
   let last = 0
@@ -88,7 +87,7 @@ function renderInline(text, keyPrefix) {
 
 // --- layout primitives -----------------------------------------------------------------
 
-function Section({ title, children }) {
+export function Section({ title, children }) {
   return (
     <section style={{ marginBottom: '28px' }}>
       <h2
@@ -113,7 +112,7 @@ function Section({ title, children }) {
 
 // Paragraphs render as <div>, not <p>: display maths emits a block-level element and nesting
 // that inside a <p> is invalid markup.
-function Paragraph({ text, id, style }) {
+export function Paragraph({ text, id, style }) {
   return <div style={{ ...prose, marginBottom: '12px', ...style }}>{renderInline(text, id)}</div>
 }
 
@@ -193,7 +192,7 @@ function Part({ block, accent, id }) {
 // The source keeps its authoring notes at the end of the file; the panel shows them against
 // the sub-part they describe. Currently: the missing F-t graph for IB part (b)(ii), and the
 // missing AP FRQ figures.
-function PendingNote({ text, id }) {
+export function PendingNote({ text, id }) {
   return (
     <div
       style={{
@@ -267,7 +266,7 @@ function FigureSlot({ block, id }) {
   )
 }
 
-function Answer({ answer, accent, id }) {
+export function Answer({ answer, accent, id }) {
   return (
     <div
       style={{
@@ -288,7 +287,7 @@ function Answer({ answer, accent, id }) {
 
 // One markdown block from the parser. Shared by the question body and the worked solution so
 // a solution's **(a)** part is laid out identically to the **(a)** it answers.
-function renderBlock(block, id, accent) {
+export function renderBlock(block, id, accent) {
   if (block.type === 'options') return <Options key={id} items={block.items} id={id} />
   if (block.type === 'table') return <Table key={id} header={block.header} rows={block.rows} id={id} />
   if (block.type === 'part') return <Part key={id} block={block} accent={accent} id={id} />
@@ -303,7 +302,7 @@ function renderBlock(block, id, accent) {
   return <Paragraph key={id} text={block.text} id={id} />
 }
 
-function SolutionPanel({ blocks, accent, id }) {
+export function SolutionPanel({ blocks, accent, id }) {
   return (
     <div
       style={{
@@ -319,191 +318,3 @@ function SolutionPanel({ blocks, accent, id }) {
     </div>
   )
 }
-
-function Question({ question, accent, isFirst }) {
-  const [revealed, setRevealed] = useState(false)
-
-  const solution = question.solution || []
-  const hasReveal = Boolean(question.answer) || solution.length > 0
-  const revealNoun = question.answer ? 'answer' : 'solutions'
-
-  // Notes attach to the sub-part they describe; anything unmatched falls to the end. A note
-  // about figures is not about any one part, so it is left to fall through even when the
-  // question happens to contain a part that mentions a graph.
-  const anchorsToPart = question.notes.some((n) => /graph/i.test(n) && !/figure/i.test(n))
-  const noteAnchor = anchorsToPart
-    ? question.blocks.findIndex((b) => b.type === 'part' && /graph/i.test(b.text))
-    : -1
-  const notes = question.notes.map((text, i) => (
-    <PendingNote key={`${question.id}-note${i}`} text={text} id={`${question.id}-note${i}`} />
-  ))
-
-  return (
-    <div
-      style={{
-        paddingTop: isFirst ? 0 : '16px',
-        marginTop: isFirst ? 0 : '16px',
-        borderTop: isFirst ? 'none' : '1px solid var(--instrument-grid)',
-      }}
-    >
-      {question.label && (
-        <div style={{ ...microLabel, fontSize: '12px', color: 'var(--instrument-text)', marginBottom: '8px' }}>
-          {question.label}
-        </div>
-      )}
-
-      {question.blocks.map((block, i) => {
-        const rendered = renderBlock(block, `${question.id}-b${i}`, accent)
-        return i === noteAnchor ? [rendered, ...notes] : rendered
-      })}
-
-      {noteAnchor === -1 && notes}
-
-      {question.citation && (
-        <div
-          style={{
-            fontFamily: BODY,
-            fontSize: '12px',
-            fontStyle: 'italic',
-            color: 'var(--editorial-text-secondary)',
-            marginTop: '10px',
-          }}
-        >
-          {question.citation}
-        </div>
-      )}
-
-      {hasReveal && (
-        <>
-          <button
-            type="button"
-            onClick={() => setRevealed((r) => !r)}
-            style={{
-              marginTop: '10px',
-              fontFamily: BODY,
-              fontSize: '13px',
-              padding: '6px 16px',
-              borderRadius: 'var(--radius-max)',
-              border: '1px solid var(--instrument-grid)',
-              background: 'transparent',
-              color: 'var(--instrument-text)',
-              cursor: 'pointer',
-            }}
-          >
-            {revealed ? `Hide ${revealNoun}` : `Reveal ${revealNoun}`}
-          </button>
-          {revealed &&
-            (question.answer ? (
-              <Answer answer={question.answer} accent={accent} id={question.id} />
-            ) : (
-              <SolutionPanel blocks={solution} accent={accent} id={question.id} />
-            ))}
-        </>
-      )}
-    </div>
-  )
-}
-
-function PendingGroup({ heading, accent }) {
-  // Real project status, not filler text — these sets are being written now.
-  return (
-    <div style={{ ...prose, fontSize: '13px' }}>
-      <div style={{ ...microLabel, color: accent, marginBottom: '6px' }}>In drafting</div>
-      Anay is writing the {heading.toLowerCase()} set for momentum. It follows the same path as the
-      questions above — drafted by the founders, then reviewed by Peter Syrenne before it appears here.
-    </div>
-  )
-}
-
-function QuestionGroup({ group }) {
-  const accent = ACCENT[group.curriculum]
-  // The tag already says IB or AP, so the heading drops its redundant prefix.
-  const label = group.heading.replace(/^(IB|AP)\s+/, '')
-
-  return (
-    <div style={{ ...card, borderLeft: `3px solid ${accent}`, marginBottom: '12px' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '12px' }}>
-        <span style={{ ...microLabel, color: accent }}>{group.curriculum}</span>
-        <span style={{ fontFamily: BODY, fontSize: '13px', color: 'var(--instrument-text)' }}>{label}</span>
-      </div>
-
-      {group.status === 'pending' ? (
-        <PendingGroup heading={label} accent={accent} />
-      ) : (
-        group.questions.map((question, i) => (
-          <Question key={question.id} question={question} accent={accent} isFirst={i === 0} />
-        ))
-      )}
-    </div>
-  )
-}
-
-// --- panel -----------------------------------------------------------------------------
-
-function ContentPanel() {
-  return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px' }}>
-      <Section title="Concept Summary">
-        <div style={card}>
-          {content.summary.map((text, i) => (
-            <Paragraph
-              key={`summary-${i}`}
-              text={text}
-              id={`summary-${i}`}
-              style={i === content.summary.length - 1 ? { marginBottom: 0 } : undefined}
-            />
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Key Equations">
-        <div style={card}>
-          {content.equations.map((equation, i) => (
-            <div
-              key={`equation-${i}`}
-              style={{
-                marginBottom: i === content.equations.length - 1 ? 0 : '10px',
-                color: 'var(--instrument-text)',
-              }}
-            >
-              <BlockMath math={equation.tex} />
-              {equation.caption && (
-                <div
-                  style={{
-                    fontFamily: BODY,
-                    fontSize: '12px',
-                    color: 'var(--editorial-text-secondary)',
-                    textAlign: 'center',
-                  }}
-                >
-                  {equation.caption}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Practice Questions">
-        {content.questionGroups.map((group) => (
-          <QuestionGroup key={group.id} group={group} />
-        ))}
-      </Section>
-
-      <Section title="Exam Tips">
-        <div style={card}>
-          {content.examTips.map((text, i) => (
-            <Paragraph
-              key={`tip-${i}`}
-              text={text}
-              id={`tip-${i}`}
-              style={i === content.examTips.length - 1 ? { marginBottom: 0 } : undefined}
-            />
-          ))}
-        </div>
-      </Section>
-    </div>
-  )
-}
-
-export default ContentPanel

@@ -1,29 +1,11 @@
 import { useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import MomentumCanvas from '../simulations/momentum/MomentumCanvas'
-import Controls from '../simulations/momentum/Controls'
-import Readout from '../simulations/momentum/Readout'
-import ContentPanel from '../simulations/momentum/ContentPanel'
+import { useSearchParams } from 'react-router-dom'
+import TopicSidebar from '../components/sim/TopicSidebar'
+import SimulationView from '../simulations/momentum/SimulationView'
+import ConceptPanel from '../simulations/momentum/ConceptPanel'
+import PracticePanel from '../simulations/momentum/PracticePanel'
 import ChatPanel from '../simulations/momentum/ChatPanel'
-
-// Section label for the right column.
-function SectionLabel({ children }) {
-  return (
-    <div
-      style={{
-        fontFamily: 'var(--instrument-body-font)',
-        fontSize: '11px',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        color: 'var(--instrument-text)',
-        padding: '12px 16px',
-        borderBottom: '1px solid var(--instrument-grid)',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
+import content from '../simulations/momentum/momentumContent.js'
 
 // Where the student came from, carried in ?from= by the curriculum map links.
 // A query param rather than router history state so the breadcrumb survives a
@@ -34,41 +16,44 @@ const ORIGINS = {
 }
 const DEFAULT_ORIGIN = { label: '← Home', to: '/' }
 
-// Instrument register — deliberately not phosphor green, which CLAUDE.md reserves
-// for live data readouts and primary CTAs.
-function Breadcrumb() {
-  const [searchParams] = useSearchParams()
-  const [hovered, setHovered] = useState(false)
-  const origin = ORIGINS[searchParams.get('from')] ?? DEFAULT_ORIGIN
+// The same param decides the eyebrow, because the two curricula number this topic differently:
+// IB carries it as A.2 Forces and momentum (IBCurriculumMap.jsx), AP as Unit 4 Linear Momentum
+// (APCurriculumMap.jsx). A student who arrived from one map should not be shown the other's
+// numbering.
+const EYEBROWS = {
+  ib: 'IB Physics · Topic A.2',
+  ap: 'AP Physics 1 · Unit 4',
+}
+const DEFAULT_EYEBROW = 'Mechanics'
 
-  return (
-    <div
-      style={{
-        flex: '0 0 auto',
-        padding: '10px 16px',
-        borderBottom: '1px solid var(--instrument-grid)',
-        background: 'var(--instrument-bg)',
-      }}
-    >
-      <Link
-        to={origin.to}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          fontFamily: 'var(--instrument-body-font)',
-          fontSize: '12px',
-          color: 'var(--instrument-text)',
-          opacity: hovered ? 1 : 0.6,
-          textDecoration: 'none',
-        }}
-      >
-        {origin.label}
-      </Link>
-    </div>
-  )
+// Counted from the parsed content rather than written in, so the sidebar stays honest when
+// Peter's review adds or cuts a question.
+const QUESTION_COUNT = content.questionGroups.reduce((total, group) => total + group.questions.length, 0)
+
+// The tutor is the one view that is earned. It opens once the student has been to Concept —
+// the reviewed summary the tutor itself is grounded in, so the two are reading the same source.
+// In-session only: no persistence until Supabase, which CLAUDE.md defers.
+function navItems(conceptSeen) {
+  return [
+    { id: 'simulation', label: 'Simulation', sublabel: 'Interactive track' },
+    { id: 'concept', label: 'Concept', sublabel: 'Read the theory' },
+    { id: 'practice', label: 'Practice', sublabel: `${QUESTION_COUNT} questions` },
+    {
+      id: 'ask',
+      label: 'Ask',
+      sublabel: conceptSeen ? 'Grounded tutor' : 'Locked',
+      locked: !conceptSeen,
+    },
+  ]
 }
 
 function SimulationPage() {
+  const [searchParams] = useSearchParams()
+  const from = searchParams.get('from')
+
+  const [view, setView] = useState('simulation')
+  const [conceptSeen, setConceptSeen] = useState(false)
+
   const [simState, setSimState] = useState({
     massA: 2,
     velocityA: 3,
@@ -78,7 +63,9 @@ function SimulationPage() {
   })
   const readoutRef = useRef(null)
   // latest frame, held in a ref for the same reason: ChatPanel reads it once per
-  // message sent, so there is no reason to re-render on every frame for it
+  // message sent, so there is no reason to re-render on every frame for it.
+  // Lives on the page rather than in SimulationView so it survives that view
+  // unmounting — the tutor can still describe the run the student just watched.
   const frameRef = useRef(null)
 
   const handleControlsChange = (partial) => {
@@ -92,11 +79,18 @@ function SimulationPage() {
     frameRef.current = frame
   }
 
+  // One place decides what a selection means: the gate is checked here, and visiting Concept is
+  // what lifts it. TopicSidebar renders the lock but does not enforce it.
+  const handleSelect = (id) => {
+    if (id === 'ask' && !conceptSeen) return
+    if (id === 'concept') setConceptSeen(true)
+    setView(id)
+  }
+
   return (
     <div
       style={{
         display: 'flex',
-        flexDirection: 'column',
         width: '100vw',
         height: '100vh',
         minWidth: '1024px', // desktop only — see CLAUDE.md design rules
@@ -104,58 +98,31 @@ function SimulationPage() {
         background: 'var(--instrument-bg)',
       }}
     >
-      <Breadcrumb />
+      <TopicSidebar
+        backLink={ORIGINS[from] ?? DEFAULT_ORIGIN}
+        eyebrow={EYEBROWS[from] ?? DEFAULT_EYEBROW}
+        title={content.title}
+        items={navItems(conceptSeen)}
+        activeId={view}
+        onSelect={handleSelect}
+      />
 
-      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        {/* Left: canvas (with its own Launch/Reset bar) above the controls */}
-        <div style={{ flex: '0 0 60%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <MomentumCanvas {...simState} onFrame={handleFrame} />
-          </div>
-          <Controls {...simState} onChange={handleControlsChange} />
-        </div>
-
-        {/* Right: live readout, concept content, AI tutor */}
-        <div
-          style={{
-            flex: '0 0 40%',
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            borderLeft: '1px solid var(--instrument-grid)',
-          }}
-        >
-          <Readout ref={readoutRef} {...simState} />
-
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'var(--instrument-panel)',
-              borderTop: '1px solid var(--instrument-grid)',
-            }}
-          >
-            <SectionLabel>Concept</SectionLabel>
-            <ContentPanel />
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'var(--instrument-panel)',
-              borderTop: '1px solid var(--instrument-grid)',
-            }}
-          >
-            <SectionLabel>AI Tutor</SectionLabel>
-            <ChatPanel simState={simState} frameRef={frameRef} />
-          </div>
-        </div>
-      </div>
+      {/* The four views are mutually exclusive: only the active one is mounted. Leaving
+          Simulation therefore ends the current run — MomentumCanvas cancels its own animation
+          frame on unmount — and returning starts from a fresh track. */}
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        {view === 'simulation' && (
+          <SimulationView
+            simState={simState}
+            readoutRef={readoutRef}
+            onFrame={handleFrame}
+            onControlsChange={handleControlsChange}
+          />
+        )}
+        {view === 'concept' && <ConceptPanel />}
+        {view === 'practice' && <PracticePanel />}
+        {view === 'ask' && <ChatPanel simState={simState} frameRef={frameRef} />}
+      </main>
     </div>
   )
 }

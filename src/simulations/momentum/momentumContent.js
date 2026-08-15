@@ -1,4 +1,4 @@
-// Parses docs/content/momentum.md into the structure ContentPanel renders.
+// Parses docs/content/momentum.md into the structure ConceptPanel and PracticePanel render.
 //
 // The markdown file is the single source of truth for momentum curriculum content and is
 // pending review by Peter Syrenne — nothing here writes back to it. Ordering, the Exam Tips

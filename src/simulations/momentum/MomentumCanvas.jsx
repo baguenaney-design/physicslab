@@ -49,6 +49,23 @@ function approachToEdge(x, blockWidth, velocity, canvasWidth) {
   return { gap, time: gap / (Math.abs(velocity) * PIXELS_PER_METER) }
 }
 
+// The right edge a run settles against. Overlay chrome — currently the readout card — sits above
+// the track's right end, so the caller insets the boundary by the width that chrome occupies and
+// the leading block comes to rest in visible space.
+//
+// The inset is clamped rather than applied blindly. Block B starts at a fixed BLOCK_B_START_X and
+// only ever moves left before the collision, so BLOCK_B_START_X + its width is the furthest right
+// a block can legitimately be when it first gains positive velocity. A boundary left of that reads
+// as already past the edge, and step() would rewind both blocks to meet it — a visible jump
+// backwards at the moment of contact.
+//
+// test: canvas=1203, widthB=70, inset=328 → 875  (full inset; card's left edge is at 887)
+// test: canvas=787,  widthB=70, inset=328 → 580  (clamped to 500 + 70 + 10)
+function usableRightEdge(canvasWidth, blockWidthB, inset) {
+  const clearOfStart = BLOCK_B_START_X + blockWidthB + EDGE_FREEZE_PX
+  return Math.min(canvasWidth, Math.max(canvasWidth - inset, clearOfStart))
+}
+
 // The settle is how the run ends on screen: rather than the blocks being cut off
 // mid-frame, the last tEff seconds of travel are stretched over SETTLE_SECONDS of
 // wall clock and eased to rest, leaving the leading block flush against the edge.
@@ -125,6 +142,8 @@ function MomentumCanvas({
   massB = 3,
   velocityB = -1,
   mode = 'elastic',
+  // px of the canvas's right end kept clear of settled blocks — see usableRightEdge
+  rightInset = 0,
   onFrame,
 }) {
   const containerRef = useRef(null)
@@ -162,9 +181,9 @@ function MomentumCanvas({
 
     const sim = simRef.current
     const canvas = canvasRef.current
-    const width = canvas.width
     const widthA = blockSizeForMass(massA)
     const widthB = blockSizeForMass(massB)
+    const rightBoundary = usableRightEdge(canvas.width, widthB, rightInset)
 
     if (sim.settle) {
       applySettle(sim, timestamp)
@@ -194,8 +213,8 @@ function MomentumCanvas({
         }
       }
 
-      const a = approachToEdge(sim.x1, widthA, sim.v1, width)
-      const b = approachToEdge(sim.x2, widthB, sim.v2, width)
+      const a = approachToEdge(sim.x1, widthA, sim.v1, rightBoundary)
+      const b = approachToEdge(sim.x2, widthB, sim.v2, rightBoundary)
 
       if (Math.abs(sim.v1) < AT_REST && Math.abs(sim.v2) < AT_REST) {
         // nothing left to animate — either both blocks were launched at rest, or
@@ -332,6 +351,22 @@ function MomentumCanvas({
         >
           Reset
         </button>
+        {/* States the model the numbers assume: one dimension, no friction, and the canvas edge
+            ends the run rather than reflecting a block. */}
+        <span
+          style={{
+            marginLeft: 'auto',
+            alignSelf: 'center',
+            fontFamily: 'var(--instrument-data-font)',
+            fontSize: '11px',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'var(--instrument-text)',
+            opacity: 0.45,
+          }}
+        >
+          1-D track · Frictionless
+        </span>
       </div>
     </div>
   )
