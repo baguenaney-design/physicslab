@@ -17,16 +17,17 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 0 | progress tracker | `dbae539` |
 | 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `f9487c7` |
 | 2 | shared shell: registry, `/sim/:topic`, four files → components/sim, contentParser | `17eff8c` |
-| 3 | `projectile/Controls.jsx` | — |
+| 3 | `projectile/Controls.jsx` | `PENDING_HASH` |
 | 4 | `projectile/ProjectileCanvas.jsx` | — |
 | 5 | `projectile/Readout.jsx` | — |
 | 6 | SimulationView + content + Concept/Practice panels | — |
 | 7 | routing + AP/IB curriculum map links | — |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
-**Next:** step 3 — `projectile/Controls.jsx` (speed 0–30 m/s, angle 0–90°, gravity
-Earth/Moon/Mars selector). Registry entry for projectile is added at step 6 when its
-SimulationView exists; until then `/sim/projectile` redirects home, which is correct.
+**Next:** step 4 — `projectile/ProjectileCanvas.jsx`. The projectile registry entry lands at
+step 6, once its SimulationView exists; until then `/sim/projectile` redirects home, which is
+the correct behaviour for a slug that is not yet registered. Steps 3–5 build components that
+nothing renders yet — each still builds and lints clean on its own.
 
 Step-1 checks beyond the reference case: apex at t=T/2 has vy=0 and y=H; landing speed equals
 launch speed (20.00 m/s — no drag, so the flight is symmetric); complementary angles 30°/60°
