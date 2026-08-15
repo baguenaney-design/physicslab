@@ -28,6 +28,22 @@ const VECTOR_LAUNCH_PX = 64
 
 const PROJECTILE_RADIUS = 6
 
+// Largest simulated time a single frame may advance, in seconds — 1/30 s.
+//
+// The trace is sampled once per frame, so the drawn path is only as smooth as the frame rate. A
+// browser that stops painting — a backgrounded tab throttles requestAnimationFrame to about 1 Hz,
+// and a stalled main thread can do worse — hands back a dt of a second or more on the next frame.
+// Unclamped, that single step can carry the projectile from launch to landing: the flight is
+// missed entirely and the trace is left as a straight line between two points, which draws a
+// parabola as though it were flat.
+//
+// Clamping means simulated time falls behind wall-clock time during a stall, and the flight
+// finishes late. That is the right trade for a teaching simulation: the shape of the trajectory
+// and the readout's elapsed time stay consistent with each other and with the equations, which is
+// what the student is reading. A projectile that teleports is wrong in a way a projectile that
+// runs slow is not.
+const MAX_FRAME_DT = 1 / 30
+
 // Nice round tick spacing for the distance axis — 1, 2, 5, 10, 20, 50, … metres, whichever gives
 // roughly TARGET_TICKS divisions across the visible span. A raw span/8 would label the ground in
 // steps of 5.1 m.
@@ -127,15 +143,19 @@ function drawGround(ctx, colors, view, canvasWidth, rightInset, spanX) {
   const { scale, originX, groundY } = view
   const rightEdge = canvasWidth - rightInset
 
+  // The ground runs the full width of the canvas. rightInset governs where the flight and its
+  // labels may go, not where the world ends — a ground line stopping in mid-air under the
+  // readout card would read as a drawing fault.
   ctx.strokeStyle = colors.grid
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.moveTo(0, groundY)
-  ctx.lineTo(rightEdge, groundY)
+  ctx.lineTo(canvasWidth, groundY)
   ctx.stroke()
 
   // Distance ticks along the ground, so the range can be read off the drawing and checked
-  // against the readout rather than taken on trust.
+  // against the readout rather than taken on trust. These do stop at the inset: a label sliding
+  // under the card is unreadable.
   const step = niceTickStep(spanX)
   ctx.lineWidth = 1
   ctx.font = '11px ui-monospace, monospace'
@@ -341,7 +361,7 @@ function ProjectileCanvas({
 
   const step = (timestamp) => {
     if (lastTimeRef.current === null) lastTimeRef.current = timestamp
-    const dt = (timestamp - lastTimeRef.current) / 1000
+    const dt = Math.min((timestamp - lastTimeRef.current) / 1000, MAX_FRAME_DT)
     lastTimeRef.current = timestamp
 
     const sim = simRef.current

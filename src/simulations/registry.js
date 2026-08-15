@@ -1,5 +1,7 @@
 import momentumContent from './momentum/momentumContent.js'
 import MomentumSimulationView from './momentum/SimulationView.jsx'
+import projectileContent from './projectile/projectileContent.js'
+import ProjectileSimulationView from './projectile/SimulationView.jsx'
 
 // Every simulation the site can route to, keyed by its URL slug (/sim/<slug>).
 //
@@ -53,6 +55,50 @@ const registry = {
         collided: frame?.collided ?? false,
         post_v1: frame?.collided ? frame.v1 : null,
         post_v2: frame?.collided ? frame.v2 : null,
+      }
+    },
+  },
+
+  projectile: {
+    slug: 'projectile',
+    topicName: 'projectile motion',
+    content: projectileContent,
+    SimulationView: ProjectileSimulationView,
+    // Projectile motion is not its own unit in either syllabus — it sits inside AP Physics 1
+    // Unit 1 and IB A.1, both titled "Kinematics". The curriculum maps link those cards here, so
+    // the eyebrow names the narrower scope the simulation actually covers; otherwise a student
+    // arrives expecting the whole of kinematics.
+    eyebrows: {
+      ib: 'IB Physics · A.1 — Projectile Motion',
+      ap: 'AP Physics 1 · Unit 1 — Projectile Motion',
+    },
+    simulationSublabel: 'Interactive trajectory',
+    emptyChatHint: 'Ask about the launch you are running — the tutor can see your current setup.',
+    initialState: {
+      // The reference case physics.js is verified against: R=40.82 m, H=10.20 m, T=2.886 s.
+      // A student who opens the page and presses Launch gets the canonical 45° parabola.
+      launchSpeed: 20,
+      launchAngle: 45,
+      gravity: 9.8,
+    },
+    // Flat, unit-bearing names — the projectile prompt has no subscript convention to match the
+    // way momentum's m1/v1 matches its two-block notation. See format_message in backend/main.py.
+    buildSimState(simState, frame) {
+      return {
+        v0: simState.launchSpeed,
+        angle_deg: simState.launchAngle,
+        g: simState.gravity,
+        launched: frame?.launched ?? false,
+        in_flight: frame?.inFlight ?? false,
+        // Null until the student has actually launched — before that there is no flight to
+        // describe, and sending zeros would read to the tutor as a projectile sitting still
+        // mid-simulation rather than one that has not been fired.
+        elapsed_s: frame?.launched ? frame.elapsed : null,
+        x_m: frame?.launched ? frame.x : null,
+        y_m: frame?.launched ? frame.y : null,
+        vx_ms: frame?.launched ? frame.vx : null,
+        vy_ms: frame?.launched ? frame.vy : null,
+        speed_ms: frame?.launched ? frame.speed : null,
       }
     },
   },

@@ -19,12 +19,27 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 2 | shared shell: registry, `/sim/:topic`, four files → components/sim, contentParser | `17eff8c` |
 | 3 | `projectile/Controls.jsx` | `521b679` |
 | 4 | `projectile/ProjectileCanvas.jsx` | `794cf3f` |
-| 5 | `projectile/Readout.jsx` | — |
-| 6 | SimulationView + content + Concept/Practice panels | — |
+| 5 | `projectile/Readout.jsx` | see 5.6 |
+| 6 | Readout + SimulationView + content + registry entry — **projectile is live** | `PENDING_HASH` |
 | 7 | routing + AP/IB curriculum map links | — |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
-**Next:** step 5 — `projectile/Readout.jsx`.
+**Next:** step 7 — routing and AP/IB curriculum map links.
+
+Step-6 browser check on `/sim/projectile?from=ap`: predicted block reads 40.82 m / 10.20 m /
+2.886 s, matching the verified physics exactly. A completed run lands at horizontal distance
+40.82 m with height 0.00 m, elapsed 2.89 s, vy −14.14 m/s (mirror of the +14.14 at launch) and
+speed back to 20.00 m/s. Ground ticks land where the scale says they should (the "40" tick at
+canvas x=830 against a computed 56 + 40×19.36). Concept renders the TODO banner and all eight
+KaTeX equations, with the empty Exam Tips section correctly skipped; Practice shows all four
+groups in drafting; the Concept→Ask gate works.
+
+**NOT yet eyeballed — needs a human:** the animated trajectory at full frame rate. Chrome
+freezes requestAnimationFrame in the backgrounded automation tab (measured: 3 s of wall clock
+advanced 0.03 s of simulated time), so the flight cannot be frame-stepped from here. Every
+number and the x-axis pixel mapping check out, and the y mapping is the same expression on the
+same scale, but the parabola's shape has not been seen at speed. Open a real window and launch
+one.
 step 6, once its SimulationView exists; until then `/sim/projectile` redirects home, which is
 the correct behaviour for a slug that is not yet registered. Steps 3–5 build components that
 nothing renders yet — each still builds and lints clean on its own.

@@ -17,6 +17,11 @@ function ConceptPanel({ content }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px 32px' }}>
       <div style={{ maxWidth: MEASURE }}>
+        {/* Sections are skipped rather than drawn empty. A topic mid-review can have equations
+            (canonical, written first) with no summary or exam tips yet, and a heading with a
+            rule under it and nothing beneath reads as a rendering fault rather than as content
+            that has not been written. */}
+        {content.summary.length > 0 && (
         <Section title="Concept Summary">
           <div style={card}>
             {content.summary.map((text, i) => (
@@ -29,6 +34,7 @@ function ConceptPanel({ content }) {
             ))}
           </div>
         </Section>
+        )}
 
         <Section title="Key Equations">
           <div style={card}>
@@ -58,18 +64,20 @@ function ConceptPanel({ content }) {
           </div>
         </Section>
 
-        <Section title="Exam Tips">
-          <div style={card}>
-            {content.examTips.map((text, i) => (
-              <Paragraph
-                key={`tip-${i}`}
-                text={text}
-                id={`tip-${i}`}
-                style={i === content.examTips.length - 1 ? { marginBottom: 0 } : undefined}
-              />
-            ))}
-          </div>
-        </Section>
+        {content.examTips.length > 0 && (
+          <Section title="Exam Tips">
+            <div style={card}>
+              {content.examTips.map((text, i) => (
+                <Paragraph
+                  key={`tip-${i}`}
+                  text={text}
+                  id={`tip-${i}`}
+                  style={i === content.examTips.length - 1 ? { marginBottom: 0 } : undefined}
+                />
+              ))}
+            </div>
+          </Section>
+        )}
       </div>
     </div>
   )
