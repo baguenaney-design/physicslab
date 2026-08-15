@@ -18,7 +18,7 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `f9487c7` |
 | 2 | shared shell: registry, `/sim/:topic`, four files → components/sim, contentParser | `17eff8c` |
 | 3 | `projectile/Controls.jsx` | `521b679` |
-| 4 | `projectile/ProjectileCanvas.jsx` | `PENDING_HASH` |
+| 4 | `projectile/ProjectileCanvas.jsx` | `794cf3f` |
 | 5 | `projectile/Readout.jsx` | — |
 | 6 | SimulationView + content + Concept/Practice panels | — |
 | 7 | routing + AP/IB curriculum map links | — |
