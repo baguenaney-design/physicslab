@@ -23,7 +23,7 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 6 | Readout + SimulationView + content + registry entry — projectile goes live | `d02e797` |
 | 7 | routing + AP/IB curriculum map links | `f3531f6` |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | `cb68f6e` |
-| — | θ slider floored at 1°, docs to DONE | `PENDING_HASH` |
+| — | θ slider floored at 1°, docs to DONE | `51428ba` |
 
 ## Physics verification — PASSED
 
