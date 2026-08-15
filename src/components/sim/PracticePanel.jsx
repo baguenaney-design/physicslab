@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import content from './momentumContent.js'
 import {
   ACCENT,
   Answer,
@@ -15,6 +14,10 @@ import {
 
 // The question half of the old ContentPanel. Reveal state stays local to each Question, exactly
 // as before — nothing above this component reads it.
+//
+// Shared across simulations: parsed content and the topic's name arrive as props from the topic
+// registry. The name is only used in the in-drafting copy, which has to say which topic's set is
+// being written.
 const MEASURE = '780px'
 
 function Question({ question, accent, isFirst }) {
@@ -101,18 +104,18 @@ function Question({ question, accent, isFirst }) {
   )
 }
 
-function PendingGroup({ heading, accent }) {
+function PendingGroup({ heading, accent, topicName }) {
   // Real project status, not filler text — these sets are being written now.
   return (
     <div style={{ ...prose, fontSize: '13px' }}>
       <div style={{ ...microLabel, color: accent, marginBottom: '6px' }}>In drafting</div>
-      Anay is writing the {heading.toLowerCase()} set for momentum. It follows the same path as the
-      questions above — drafted by the founders, then reviewed by Peter Syrenne before it appears here.
+      Anay is writing the {heading.toLowerCase()} set for {topicName}. It is drafted by the founders,
+      then reviewed by Peter Syrenne before it appears here.
     </div>
   )
 }
 
-function QuestionGroup({ group }) {
+function QuestionGroup({ group, topicName }) {
   const accent = ACCENT[group.curriculum]
   // The tag already says IB or AP, so the heading drops its redundant prefix.
   const label = group.heading.replace(/^(IB|AP)\s+/, '')
@@ -125,7 +128,7 @@ function QuestionGroup({ group }) {
       </div>
 
       {group.status === 'pending' ? (
-        <PendingGroup heading={label} accent={accent} />
+        <PendingGroup heading={label} accent={accent} topicName={topicName} />
       ) : (
         group.questions.map((question, i) => (
           <Question key={question.id} question={question} accent={accent} isFirst={i === 0} />
@@ -135,13 +138,13 @@ function QuestionGroup({ group }) {
   )
 }
 
-function PracticePanel() {
+function PracticePanel({ content, topicName }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px 32px' }}>
       <div style={{ maxWidth: MEASURE }}>
         <Section title="Practice Questions">
           {content.questionGroups.map((group) => (
-            <QuestionGroup key={group.id} group={group} />
+            <QuestionGroup key={group.id} group={group} topicName={topicName} />
           ))}
         </Section>
       </div>

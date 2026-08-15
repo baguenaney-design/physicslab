@@ -189,9 +189,9 @@ function Part({ block, accent, id }) {
   )
 }
 
-// The source keeps its authoring notes at the end of the file; the panel shows them against
-// the sub-part they describe. Currently: the missing F-t graph for IB part (b)(ii), and the
-// missing AP FRQ figures.
+// A source file keeps its authoring notes at the end of the question; the panel shows them
+// against the sub-part they describe. In momentum.md: the missing F-t graph for IB part (b)(ii),
+// and the missing AP FRQ figures.
 export function PendingNote({ text, id }) {
   return (
     <div

@@ -1,11 +1,15 @@
 import { useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 import TopicSidebar from '../components/sim/TopicSidebar'
-import SimulationView from '../simulations/momentum/SimulationView'
-import ConceptPanel from '../simulations/momentum/ConceptPanel'
-import PracticePanel from '../simulations/momentum/PracticePanel'
-import ChatPanel from '../simulations/momentum/ChatPanel'
-import content from '../simulations/momentum/momentumContent.js'
+import ConceptPanel from '../components/sim/ConceptPanel'
+import PracticePanel from '../components/sim/PracticePanel'
+import ChatPanel from '../components/sim/ChatPanel'
+import registry from '../simulations/registry.js'
+import { countQuestions } from '../simulations/contentParser.js'
+
+// The shell every simulation is rendered into. It owns the sidebar, the four-view switch and the
+// Concept→Ask gate; everything topic-specific comes from src/simulations/registry.js, keyed by
+// the :topic route param.
 
 // Where the student came from, carried in ?from= by the curriculum map links.
 // A query param rather than router history state so the breadcrumb survives a
@@ -15,29 +19,24 @@ const ORIGINS = {
   ap: { label: '← Back to AP', to: '/ap' },
 }
 const DEFAULT_ORIGIN = { label: '← Home', to: '/' }
-
-// The same param decides the eyebrow, because the two curricula number this topic differently:
-// IB carries it as A.2 Forces and momentum (IBCurriculumMap.jsx), AP as Unit 4 Linear Momentum
-// (APCurriculumMap.jsx). A student who arrived from one map should not be shown the other's
-// numbering.
-const EYEBROWS = {
-  ib: 'IB Physics · Topic A.2',
-  ap: 'AP Physics 1 · Unit 4',
-}
 const DEFAULT_EYEBROW = 'Mechanics'
-
-// Counted from the parsed content rather than written in, so the sidebar stays honest when
-// Peter's review adds or cuts a question.
-const QUESTION_COUNT = content.questionGroups.reduce((total, group) => total + group.questions.length, 0)
 
 // The tutor is the one view that is earned. It opens once the student has been to Concept —
 // the reviewed summary the tutor itself is grounded in, so the two are reading the same source.
 // In-session only: no persistence until Supabase, which CLAUDE.md defers.
-function navItems(conceptSeen) {
+//
+// The Practice sublabel is counted from the parsed content rather than written in, so it stays
+// honest when a review adds or cuts a question. A topic whose question sets are all still
+// pending counts zero — "0 questions" reads like a fault, so it says so in words instead.
+function navItems(topic, questionCount, conceptSeen) {
   return [
-    { id: 'simulation', label: 'Simulation', sublabel: 'Interactive track' },
+    { id: 'simulation', label: 'Simulation', sublabel: topic.simulationSublabel },
     { id: 'concept', label: 'Concept', sublabel: 'Read the theory' },
-    { id: 'practice', label: 'Practice', sublabel: `${QUESTION_COUNT} questions` },
+    {
+      id: 'practice',
+      label: 'Practice',
+      sublabel: questionCount > 0 ? `${questionCount} questions` : 'In drafting',
+    },
     {
       id: 'ask',
       label: 'Ask',
@@ -47,26 +46,31 @@ function navItems(conceptSeen) {
   ]
 }
 
-function SimulationPage() {
+function SimulationPage({ slug }) {
   const [searchParams] = useSearchParams()
   const from = searchParams.get('from')
+
+  const topic = registry[slug]
 
   const [view, setView] = useState('simulation')
   const [conceptSeen, setConceptSeen] = useState(false)
 
-  const [simState, setSimState] = useState({
-    massA: 2,
-    velocityA: 3,
-    massB: 3,
-    velocityB: -1,
-    mode: 'elastic',
-  })
+  // Seeded from the registry entry, copied so a run's slider changes never write back into it.
+  // `topic` is undefined for an unknown slug, which the redirect below handles — but hooks
+  // cannot be called conditionally, so this has to stay legal on the render that redirects.
+  // Spreading undefined is a no-op, which is exactly the empty state that render wants.
+  const [simState, setSimState] = useState(() => ({ ...topic?.initialState }))
   const readoutRef = useRef(null)
   // latest frame, held in a ref for the same reason: ChatPanel reads it once per
   // message sent, so there is no reason to re-render on every frame for it.
-  // Lives on the page rather than in SimulationView so it survives that view
+  // Lives on the page rather than in the topic's SimulationView so it survives that view
   // unmounting — the tutor can still describe the run the student just watched.
   const frameRef = useRef(null)
+
+  // A mistyped or retired slug lands somewhere real rather than on a blank shell.
+  if (!topic) return <Navigate to="/" replace />
+
+  const { SimulationView, content } = topic
 
   const handleControlsChange = (partial) => {
     setSimState((prev) => ({ ...prev, ...partial }))
@@ -100,16 +104,16 @@ function SimulationPage() {
     >
       <TopicSidebar
         backLink={ORIGINS[from] ?? DEFAULT_ORIGIN}
-        eyebrow={EYEBROWS[from] ?? DEFAULT_EYEBROW}
+        eyebrow={topic.eyebrows[from] ?? DEFAULT_EYEBROW}
         title={content.title}
-        items={navItems(conceptSeen)}
+        items={navItems(topic, countQuestions(content), conceptSeen)}
         activeId={view}
         onSelect={handleSelect}
       />
 
       {/* The four views are mutually exclusive: only the active one is mounted. Leaving
-          Simulation therefore ends the current run — MomentumCanvas cancels its own animation
-          frame on unmount — and returning starts from a fresh track. */}
+          Simulation therefore ends the current run — a topic's canvas cancels its own animation
+          frame on unmount — and returning starts fresh. */}
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         {view === 'simulation' && (
           <SimulationView
@@ -119,12 +123,30 @@ function SimulationPage() {
             onControlsChange={handleControlsChange}
           />
         )}
-        {view === 'concept' && <ConceptPanel />}
-        {view === 'practice' && <PracticePanel />}
-        {view === 'ask' && <ChatPanel simState={simState} frameRef={frameRef} />}
+        {view === 'concept' && <ConceptPanel content={content} />}
+        {view === 'practice' && <PracticePanel content={content} topicName={topic.topicName} />}
+        {view === 'ask' && (
+          <ChatPanel
+            simulation={topic.slug}
+            simState={simState}
+            frameRef={frameRef}
+            buildSimState={topic.buildSimState}
+            emptyHint={topic.emptyChatHint}
+          />
+        )}
       </main>
     </div>
   )
 }
 
-export default SimulationPage
+// All four views share one route, /sim/:topic, so React Router keeps the same SimulationPage
+// mounted when only the param changes. Without a key, moving between two simulations would carry
+// the previous topic's control values, view selection and Concept gate across — momentum's
+// massA/velocityA sliders would still be sitting in projectile's state. Keying on the slug makes
+// a topic change a remount, which is what it is.
+function SimulationRoute() {
+  const { topic: slug } = useParams()
+  return <SimulationPage key={slug} slug={slug} />
+}
+
+export default SimulationRoute

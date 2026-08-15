@@ -2,30 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 
 // Phase 3.4 — the tutor UI. The backend streams a real Claude reply; the reader
 // below handles both that and the older single-JSON shape.
+//
+// Shared across simulations. Everything topic-specific arrives as a prop from the
+// topic registry: which system prompt the backend should load (`simulation`), how
+// this topic's controls and live frame translate into the state the tutor is sent
+// (`buildSimState`), and the empty-log hint. The transport, the history window and
+// the error handling are identical for every topic and live here.
 
 const DISCLAIMER = 'AI responses are grounded in reviewed content. Always verify against your syllabus.'
 
 // How many prior messages travel with each request. Enough for the response-mode
-// menu in backend/prompts/momentum.txt to hold across a few follow-ups without
-// resending a whole session.
+// menu in the system prompts (see backend/prompts/momentum.txt section 4) to hold
+// across a few follow-ups without resending a whole session.
 const HISTORY_LIMIT = 10
-
-// Key names match IMPLEMENTATION_PLAN 3.1 and the ChatRequest docstring in
-// backend/main.py — subscript notation, not the frontend's massA/velocityA.
-// v1/v2 are the velocities the student dialled in; post_v1/post_v2 are what the
-// blocks are actually moving at, and are only meaningful once they have collided.
-function buildSimState(simState, frame) {
-  return {
-    m1: simState.massA,
-    v1: simState.velocityA,
-    m2: simState.massB,
-    v2: simState.velocityB,
-    mode: simState.mode,
-    collided: frame?.collided ?? false,
-    post_v1: frame?.collided ? frame.v1 : null,
-    post_v2: frame?.collided ? frame.v2 : null,
-  }
-}
 
 // Prior turns, in the role names the Anthropic API expects. Without these the
 // tutor cannot honour its response-mode menu — a student answering "2" means
@@ -87,7 +76,7 @@ function Message({ role, content, isError }) {
   )
 }
 
-function ChatPanel({ simState, frameRef }) {
+function ChatPanel({ simulation, simState, frameRef, buildSimState, emptyHint }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [status, setStatus] = useState('idle') // idle | waiting | streaming
@@ -128,7 +117,7 @@ function ChatPanel({ simState, frameRef }) {
         body: JSON.stringify({
           message,
           sim_state: buildSimState(simState, frameRef.current),
-          simulation: 'momentum',
+          simulation,
           // `messages` here is the pre-send value captured by this closure, so it
           // holds the completed turns and not the pair just queued above.
           history: buildHistory(messages),
@@ -202,7 +191,7 @@ function ChatPanel({ simState, frameRef }) {
               opacity: 0.5,
             }}
           >
-            Ask about the collision you are running — the tutor can see your current setup.
+            {emptyHint}
           </div>
         )}
 

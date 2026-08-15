@@ -1,16 +1,19 @@
 import { BlockMath } from 'react-katex'
-import content from './momentumContent.js'
 import { BODY, Paragraph, Section, card } from './contentPrimitives.jsx'
 
 // The theory half of the old ContentPanel: what the student reads before running anything.
 // Exam Tips sits here rather than under Practice — it is guidance about the topic, not a
 // question to attempt.
 //
+// Shared across simulations: the parsed content arrives as a prop from the topic registry, so
+// this component knows nothing about which topic it is rendering. A topic whose summary or tips
+// are still awaiting review simply parses to fewer blocks and renders fewer sections.
+//
 // The measure is capped rather than left to fill the view pane: at 1024px+ a full-width rule
 // under each section heading would run further than the prose beneath it.
 const MEASURE = '780px'
 
-function ConceptPanel() {
+function ConceptPanel({ content }) {
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px 32px' }}>
       <div style={{ maxWidth: MEASURE }}>

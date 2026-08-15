@@ -11,7 +11,9 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/ap" element={<APCurriculumMap />} />
         <Route path="/ib" element={<IBCurriculumMap />} />
-        <Route path="/sim/momentum" element={<SimulationPage />} />
+        {/* One route for every simulation — the slug is looked up in src/simulations/registry.js,
+            and an unknown one redirects home from inside the page. */}
+        <Route path="/sim/:topic" element={<SimulationPage />} />
         {/* a mistyped URL should land somewhere real rather than on a blank page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
