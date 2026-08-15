@@ -10,24 +10,39 @@ from phase 5.2 — a registry entry plus one folder, no shell edits.
 split static and kinetic coefficients. Constant `g = 9.8`. **Not** coupled blocks, Atwood machines
 or connected systems — those are their own future simulation. Not inclined planes.
 
-## ⚠ PHYSICS VERIFICATION — **UNVERIFIED**
+## Physics verification — **PASSED**
 
-`physics.js` does not exist yet. The two required cases have been checked **by hand only** and have
-never been run against code. **Nothing may be built on top of them until step 1 runs and Yani
-confirms both outputs.**
+Numeric, run through node against `physics.js` at step 1. Reference block
+`m = 2 kg, μ_s = 0.5, μ_k = 0.3, g = 9.8`:
 
-Hand-checked, `m=2 kg, μ_s=0.5, μ_k=0.3, g=9.8`:
+- **Required case, MOVING** `F = 12 N` → `N = 19.6`, `f_s,max = 9.8`, `12 > 9.8` so it breaks away,
+  `f_k = 5.88`, `F_net = 6.12`, **`a = 3.06 m/s²`**. Exact.
+- **Required case, STATIC** `F = 8 N` → `8 < 9.8` so it holds, **friction `= 8 N` (not 9.8)**,
+  `F_net = 0`, **`a = 0`**. Exact.
+- **Independent cross-check** on `a = 3.06` by the work-energy theorem, a route that never divides
+  a net force by a mass: from rest for 2 s, `W_net = 6.12 × 6.12 = 37.4544 J` and
+  `ΔKE = ½ × 2 × 6.12² = 37.4544 J`. Absolute difference **0**.
+- **Threshold sweep** — friction tracks the applied force exactly up to the ceiling, then drops
+  discontinuously: `F = 9.79` → friction 9.79, `a = 0`; `F = 9.80` → friction 9.80, `a = 0` (held
+  at exactly `f_s,max`, per the `≤` convention); `F = 9.81` → friction **5.88**, `a = 1.965`.
+- **Moving block** decelerates at `−1.44` under a 3 N forward push (below `f_k` — a standard exam
+  trap); `F = 5.88` gives exactly `a = 0`, dynamic equilibrium; `μ = 0` gives `a = F/m = 6`.
+- **Stop-at-rest guard.** `v₀ = 1, F = 0, dt = 1` would give `v = −1.94` under unguarded Euler —
+  friction driving the block backwards, impossible. Guarded gives `v = 0` and
+  `0.17006802721088435 m`, exactly `1/(2 × 2.94)`. A block coasting under `F = 3` reaches `v = 0`,
+  flips to `static`, friction becomes `−3.00 (= −F)`, and holds with no jitter across zero.
+- **60 fps sanity**: `v₀ = 6, a = −2.94, dt = 0.0167` → `v = 5.950902`, ordinary step, guard not
+  triggered.
 
-- `F = 12 N` → `N=19.6`, `f_s,max=9.8`, `12 > 9.8` so it moves, `a = (12−5.88)/2 = 3.06 m/s²`
-- `F = 8 N` → `8 < 9.8` so it stays put, friction `= 8 N` (**not** 9.8), `a = 0`
+Visual eye-test in a real browser: **not yet done** — no canvas exists until step 3.
 
 ## Status
 
 | Step | What | Commit |
 |---|---|---|
 | pre | approved build plan, no code | `76ff865` |
-| 0 | progress tracker | this commit |
-| 1 | `newtons-second/physics.js` — **accuracy gate, NOT YET RUN** | — |
+| 0 | progress tracker | `8521d72` |
+| 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
 | 2 | `Controls.jsx` | — |
 | 3 | `NewtonsCanvas.jsx` | — |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
@@ -56,6 +71,16 @@ Hand-checked, `m=2 kg, μ_s=0.5, μ_k=0.3, g=9.8`:
   takes one `to` per card. This sim is reachable from the **AP map only** for now. The registry
   still carries both `ib` and `ap` eyebrows, so repointing later needs no other change. See Open
   questions.
+- **2026-08-15 (step 1)** — **`advance()` integrates rather than using a closed form**, and it
+  lives in `physics.js` rather than the canvas so the canvas computes nothing physical. Semi-implicit
+  Euler, because the live sliders mean acceleration can change mid-run and a closed form would have
+  to freeze the parameters. It carries a **stop-at-rest guard**: when `v` changes sign inside a
+  step, friction brought the block to rest partway through the frame, and unguarded Euler carries it
+  out the other side — friction driving a body backwards, which is impossible. Clamped to `v = 0`
+  and advanced by the true stopping distance `v₀²/(2|a|)` instead, so the next frame re-enters the
+  static test at rest.
+- **2026-08-15 (step 1)** — `direction()` is used instead of `Math.sign`, because `Math.sign(-0)`
+  is `-0` and a `-0` leaking into a friction direction renders as `-0.00 N` in the readout.
 - **2026-08-15 (planning)** — Three corrections to the original brief, verified against the repo:
   `src/App.jsx` needs **no edit** (`/sim/:topic` already serves every registry slug); there is no
   `src/pages/CurriculumMap.jsx` (it is `APCurriculumMap.jsx` + `IBCurriculumMap.jsx` over a shared
@@ -76,7 +101,7 @@ Hand-checked, `m=2 kg, μ_s=0.5, μ_k=0.3, g=9.8`:
 
 ## REMAINING
 
-All of steps 1–7. Content artefacts will ship as marked TODO placeholders on the content track
+Steps 2–7. Content artefacts will ship as marked TODO placeholders on the content track
 (founders draft → Peter Syrenne reviews → drop in), exactly as projectile's did:
 
 1. **Concept summary** — `docs/content/newtons-second.md`, `## Concept Summary`. Must cover: that
@@ -92,5 +117,6 @@ All of steps 1–7. Content artefacts will ship as marked TODO placeholders on t
 
 On "resume newtons": read CLAUDE.md, this file, `git log --oneline | grep "phase 6"`, and the
 projectile sim as template. Report where we are in 3–4 lines. Wait for go. Do not start building.
-If the UNVERIFIED banner above is still present, the physics gate has not been passed and nothing
-may be built on top of `physics.js`.
+
+**The physics gate is PASSED as of `fbad8de`** — both required cases verified against real output.
+Steps 2 onward may build on `physics.js`. Next up is step 2, `Controls.jsx`.
