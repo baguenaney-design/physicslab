@@ -18,13 +18,13 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `f9487c7` |
 | 2 | shared shell: registry, `/sim/:topic`, four files → components/sim, contentParser | `17eff8c` |
 | 3 | `projectile/Controls.jsx` | `521b679` |
-| 4 | `projectile/ProjectileCanvas.jsx` | — |
+| 4 | `projectile/ProjectileCanvas.jsx` | `PENDING_HASH` |
 | 5 | `projectile/Readout.jsx` | — |
 | 6 | SimulationView + content + Concept/Practice panels | — |
 | 7 | routing + AP/IB curriculum map links | — |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
-**Next:** step 4 — `projectile/ProjectileCanvas.jsx`. The projectile registry entry lands at
+**Next:** step 5 — `projectile/Readout.jsx`.
 step 6, once its SimulationView exists; until then `/sim/projectile` redirects home, which is
 the correct behaviour for a slug that is not yet registered. Steps 3–5 build components that
 nothing renders yet — each still builds and lints clean on its own.
