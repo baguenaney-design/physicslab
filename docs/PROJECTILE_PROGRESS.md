@@ -1,6 +1,6 @@
-> **UNVERIFIED: physics.js test case not confirmed — re-check before anything builds on it.**
-> Expected for v0=20, θ=45°, g=9.8: R=40.82 m, H=10.20 m, T=2.886 s.
-> This line is removed once Yani has seen the raw node output.
+> **physics.js VERIFIED 2026-08-15.** v0=20, θ=45°, g=9.8 → R=40.816326530612244 (40.82 m),
+> H=10.204081632653057 (10.20 m), T=2.8861501272920305 (2.886 s). All three PASS against the
+> reference case. Independent cross-check R = vx·T agrees to 0 absolute difference.
 
 # Phase 5 — Projectile Motion — progress
 
@@ -14,8 +14,8 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | Step | What | Commit |
 |---|---|---|
 | pre | phase 4 momentum four-view shell (was uncommitted; committed as the Phase 5 restore point) | `49d1b6e` |
-| 0 | progress tracker | — |
-| 1 | `projectile/physics.js` — **accuracy gate** | — |
+| 0 | progress tracker | `dbae539` |
+| 1 | `projectile/physics.js` — **accuracy gate, PASSED** | `11b1186` |
 | 2 | shared shell: registry, ChatPanel → components/sim, contentParser | — |
 | 3 | `projectile/Controls.jsx` | — |
 | 4 | `projectile/ProjectileCanvas.jsx` | — |
@@ -24,8 +24,12 @@ Beyond-the-Classroom — no closed form, and AP1/IB test the no-drag case.
 | 7 | routing + AP/IB curriculum map links | — |
 | 8 | `backend/prompts/projectile.txt` + per-sim `format_message` | — |
 
-**Next:** step 1 — write `physics.js`, run the test case through node, show Yani the raw output
-before writing any other projectile file.
+**Next:** step 2 — shared shell refactor (registry, ChatPanel → `components/sim/`, contentParser
+extracted). **Paused: waiting on Yani to confirm the step-1 test output before continuing.**
+
+Also verified beyond the reference case: apex at t=T/2 has vy=0 and y=H; landing speed equals
+launch speed (20.00 m/s — no drag, so the flight is symmetric); complementary angles 30°/60°
+share a range (35.35 m); θ=90° gives R=0, H=20.41, T=4.082; θ=0 gives T=0 (see open question 1).
 
 ## Decisions
 
