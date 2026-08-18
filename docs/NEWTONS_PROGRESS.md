@@ -74,9 +74,9 @@ single pixel.
 | 2 | `Controls.jsx` | `f874221` |
 | 3 | `NewtonsCanvas.jsx` | `70dac9e` |
 | 4 | Readout + SimulationView + content + registry entry — **LIVE** | `6ed13c3` |
-| 5 | AP curriculum map link | — |
+| 5 | AP **and IB** curriculum map links | `79c8dcc` |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
-| 7 | cross-sim roster sweep — **report only, no silent edits** | — |
+| 7 | cross-sim roster sweep — **applied, 2 lines** | *pending — hash recorded next commit* |
 
 ## Decisions
 
@@ -226,13 +226,45 @@ single pixel.
   collided with the normal-force label — **removed**, which is what step 3's own note said to
   reconsider here.
 
+- **2026-08-18 (step 5)** — **IB A.2 is now TWO cards, resolving open question 1.** A.2 was never
+  "coming soon" — it already pointed at `/sim/momentum`, and `TopicCard` carries one destination per
+  card. Repointing it would have delinked momentum from the IB map entirely. So A.2 is split: two
+  cards sharing the code `A.2`, titled `Forces and momentum — Newton's second law` and
+  `Forces and momentum — momentum and impulse`. Their titles *must* differ —
+  `CurriculumSection` keys its cards on `topic.title` — which is also why this needed no change to
+  the shared `TopicCard` component. Decided by the founders when the options were put to them.
+- **2026-08-18 (step 5)** — **The IB card says "Newton's second law", not "Newton's laws".** The
+  simulation models one block on a flat surface and covers neither the first nor the third law. A
+  card title is a claim about what sits behind it.
+- **2026-08-18 (step 5)** — **AP Physics C: Mechanics deliberately still reads "Coming soon"** on
+  Unit 2. It shares the `MECHANICS_UNITS` list with Physics 1 but is passed no links, the same
+  reasoning already recorded for Unit 4: these simulations are pitched at the algebra-based course.
+  Verified on the rendered page as a negative check, not assumed.
+- **2026-08-18 (step 7)** — **The roster sweep changed exactly two lines**, one in each of
+  `momentum.txt:240` and `projectile.txt:142`, both from `not yet covered` to
+  `COVERED (friction and Newton's second law only)`. The qualifier is what keeps it honest: AP
+  Unit 2 also covers connected systems, Atwood machines and inclined planes, none of which this
+  simulation models. The 53-character prefix is preserved byte-for-byte so the status column stays
+  aligned, and `momentum.txt:256` — the *C: Mechanics* Unit 2 line, which matches the same text —
+  was targeted by line number rather than by string so it could not be caught by a global replace.
+- **2026-08-18 (step 7)** — **The change does not wait on step 6.** The roster's own definition
+  (`momentum.txt:197`) is that COVERED means "a simulation is live on PhysicsLab today", not that a
+  tutor exists for it. The simulation is live and linked from both maps; only its own tutor is
+  missing.
+- **2026-08-18 (step 7)** — **Checked and deliberately NOT changed:** `momentum.txt:256`
+  (C: Mechanics Unit 2, correctly still uncovered); IB A.2, already `COVERED` unqualified in both
+  files, so there was no false claim to fix — that line arguably became *more* accurate today;
+  `momentum.txt:320-323`, the prose caveat saying the momentum sim covers "only the momentum and
+  impulse portion of A.2", now stale in spirit but **grounding prose, out of the roster-only scope
+  set for this step**; and `projectile.txt`, which carries no A.2 caveat at all so its tutor reads
+  A.2 as flatly covered. The last two are open items for step 6.
+
 ## Open questions
 
-1. **How do IB students reach this simulation?** Currently they cannot — A.2 points at momentum.
-   Options parked: split A.2 into two cards with a qualifier field (`Momentum & impulse` /
-   `Newton's second law`), or leave it AP-only until the IB map is reworked. Not blocking the build.
-2. **Roster sweep, step 7 — awaiting a decision, no file touched.** Both `momentum.txt:240` and
-   `projectile.txt:142` mark `Unit 2  Force and Translational Dynamics ... not yet covered`, which
+1. ~~**How do IB students reach this simulation?**~~ **RESOLVED 2026-08-18 (step 5)** — A.2 split
+   into two cards, both live. See the step 5 decisions above.
+2. ~~**Roster sweep, step 7**~~ **RESOLVED 2026-08-18 (step 7)** — applied, two lines. The
+   original finding, for the record: both `momentum.txt:240` and `projectile.txt:142` marked `Unit 2  Force and Translational Dynamics ... not yet covered`, which
    goes false the moment this sim ships. IB A.2 is already `COVERED` in both via momentum, but its
    partial-coverage caveat is prose-only (`momentum.txt:320-323`) and **absent entirely from
    `projectile.txt`**, whose tutor therefore reads A.2 as flatly covered. `momentum.txt:256`
@@ -240,7 +272,7 @@ single pixel.
 
 ## REMAINING
 
-Steps 5–7. Content artefacts will ship as marked TODO placeholders on the content track
+Step 6 only. Content artefacts will ship as marked TODO placeholders on the content track
 (founders draft → Peter Syrenne reviews → drop in), exactly as projectile's did:
 
 1. **Concept summary** — `docs/content/newtons-second.md`, `## Concept Summary`. Must cover: that
@@ -272,4 +304,10 @@ clock advancing 0.03 s simulated), so breakaway, the camera scroll and the coast
 been verified numerically but never *watched*. That check is the founders', at
 `http://localhost:5173/sim/newtons-second`.
 
-Next up is step 5, the AP curriculum map link — still gated on the open questions below.
+**Steps 5 and 7 are done.** The simulation is linked from AP Physics 1 Unit 2 and from both IB
+A.2 cards, and the two stale roster lines are corrected.
+
+**Only step 6 remains** — `backend/prompts/newtons-second.txt` plus `format_newtons_state` in
+`backend/main.py`. Until it lands, the Ask tab unlocks and then fails with a clean "No system
+prompt for simulation" error, which is correct: this tutor **must not be served until section 2
+holds Peter-reviewed content**.

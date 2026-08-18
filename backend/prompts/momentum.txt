@@ -237,7 +237,7 @@ Section E — Nuclear and quantum physics
 
 AP Physics 1 (algebra-based, seven units)
   Unit 1  Kinematics ............................... COVERED (projectile only)
-  Unit 2  Force and Translational Dynamics ......... not yet covered
+  Unit 2  Force and Translational Dynamics ......... COVERED (friction and Newton's second law only)
   Unit 3  Work, Energy, and Power .................. not yet covered
   Unit 4  Linear Momentum .......................... COVERED
   Unit 5  Torque and Rotational Dynamics ........... not yet covered
