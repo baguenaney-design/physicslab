@@ -43,7 +43,7 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 | pre | approved build plan, no code | `76ff865` |
 | 0 | progress tracker | `8521d72` |
 | 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
-| 2 | `Controls.jsx` | — |
+| 2 | `Controls.jsx` | *pending — hash recorded next commit* |
 | 3 | `NewtonsCanvas.jsx` | — |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
 | 5 | AP curriculum map link | — |
@@ -87,6 +87,26 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
   `TopicCard`); `MANUAL_QA.md` §6 is a reminder log, not the roster sweep — those checkboxes are
   in §5.
 
+- **2026-08-18 (step 2)** — **The `μ_k ≤ μ_s` clamp is enforced from both sides.** Raising `μ_k`
+  past `μ_s` is blocked, and lowering `μ_s` below `μ_k` drags `μ_k` down with it rather than
+  refusing the drag — a slider that silently stops responding reads as broken. Each is a single
+  `onChange` call, because the shell merges a partial into `simState` (`SimulationPage.jsx:76`) and
+  one call can therefore set both keys. The clamp lives in the UI and not in `physics.js`: the
+  equations are correct for whatever coefficients they are handed; it is the *control* that must
+  not offer an impossible surface.
+- **2026-08-18 (step 2)** — **The Rubber preset is clipped, and the file says so.** Rubber on dry
+  concrete is usually quoted near `1.0 / 0.8`, above this simulation's `0.8` slider ceiling. It is
+  entered as `0.80 / 0.70` — the grippiest pair the controls can express — and the comment above
+  `SURFACES` flags it as clipped rather than passing it off as the book value. Ice `0.10 / 0.03`
+  and Wood `0.50 / 0.30` are the tabulated values, unclipped.
+- **2026-08-18 (step 2)** — **`g` is displayed but not controllable.** Fixed at 9.8 and exported as
+  `GRAVITY` from `Controls.jsx`, shown dimmed at the end of the surface row. It is not a control —
+  this sim is not about gravity — but every normal force and therefore every friction figure in the
+  readout comes from it, and `N = mg` is unreadable without knowing which `g`.
+- **2026-08-18 (step 2)** — **Slider labels take JSX, not a plain string**, so `μ`'s subscript is
+  real markup (`μ<sub>s</sub>`) rather than a Unicode subscript glyph Inter may not carry. `Slider`
+  already renders `{label}` into a span, so the component needed no change.
+
 ## Open questions
 
 1. **How do IB students reach this simulation?** Currently they cannot — A.2 points at momentum.
@@ -101,7 +121,7 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 
 ## REMAINING
 
-Steps 2–7. Content artefacts will ship as marked TODO placeholders on the content track
+Steps 3–7. Content artefacts will ship as marked TODO placeholders on the content track
 (founders draft → Peter Syrenne reviews → drop in), exactly as projectile's did:
 
 1. **Concept summary** — `docs/content/newtons-second.md`, `## Concept Summary`. Must cover: that
@@ -119,4 +139,7 @@ On "resume newtons": read CLAUDE.md, this file, `git log --oneline | grep "phase
 projectile sim as template. Report where we are in 3–4 lines. Wait for go. Do not start building.
 
 **The physics gate is PASSED as of `fbad8de`** — both required cases verified against real output.
-Steps 2 onward may build on `physics.js`. Next up is step 2, `Controls.jsx`.
+Steps 2 onward may build on `physics.js`. **Step 2 `Controls.jsx` is built and verified** —
+oxlint clean, `npm run build` clean, and the file parses under esbuild (the build alone does
+not exercise it: nothing imports `Controls.jsx` until step 4 wires the registry entry, so vite
+does not bundle it yet). Next up is step 3, `NewtonsCanvas.jsx`.
