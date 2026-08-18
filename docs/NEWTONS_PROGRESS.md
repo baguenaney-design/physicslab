@@ -73,7 +73,7 @@ single pixel.
 | 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | `4a81cf7` |
 | 2 | `Controls.jsx` | `f874221` |
 | 3 | `NewtonsCanvas.jsx` | `70dac9e` |
-| 4 | Readout + SimulationView + content + registry entry — goes live | — |
+| 4 | Readout + SimulationView + content + registry entry — **LIVE** | *pending — hash recorded next commit* |
 | 5 | AP curriculum map link | — |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
 | 7 | cross-sim roster sweep — **report only, no silent edits** | — |
@@ -191,6 +191,41 @@ single pixel.
   `'JetBrains Mono', ui-monospace, monospace` — projectile predates the font being loaded and uses
   the bare fallback stack.
 
+- **2026-08-18 (step 4)** — **The shell needed no edits, as designed.** `SimulationPage`,
+  `ConceptPanel`, `PracticePanel`, `ChatPanel` and `contentParser` are all fully generic; the
+  four-view split, the Concept→Ask gate and the question count came free from the registry entry.
+  The phase 5.2 generalisation holds.
+- **2026-08-18 (step 4)** — **The state indicator has THREE states, not two.** `resolveDynamics`
+  returns the `kinetic` regime the instant `F` passes `f_s,max` — correctly, since kinetic friction
+  applies from that instant — but the block is still at `v = 0` until the next frame, and before Run
+  it never moves at all. Labelling that `MOVING` is a lie the student can see in the velocity row
+  right beneath it. So: `STATIC` / `BREAKING AWAY` (kinetic regime, `v = 0`) / `MOVING`. Found by
+  looking at the rendered page, not by reasoning about it.
+- **2026-08-18 (step 4)** — **One bar scale for the whole panel, `f_s,max`.** Applied force and
+  friction share it so the two bars are directly comparable — below the threshold they are
+  identical lengths and grow together 1:1; at breakaway the applied bar fills the track and friction
+  visibly drops back to `μ_k/μ_s` of it. The applied bar saturating above the threshold is the
+  signal, not a defect. Net force uses the same scale signed, acceleration uses it over the mass.
+- **2026-08-18 (step 4)** — **Normal force is a LIVE row, not a predicted one**, despite changing
+  only with the mass slider — the precedent is projectile rendering horizontal velocity live while
+  noting it is constant for the whole flight. It gets no bar, for that same reason. Colour in the
+  readout matches the arrow in the canvas (applied block-a, friction block-b, normal plain text),
+  with phosphor kept for the *results*: state, net force, acceleration, velocity, displacement, time.
+- **2026-08-18 (step 4)** — `buildSimState` **is not gated on having started**, unlike projectile's
+  `launched`/`in_flight` nulling. A projectile that has not been fired has no flight to describe; a
+  block at rest with friction holding it *is* the physics. It still withholds `N`, `f_s,max`, `f_k`
+  and `a` — the prompt file tells the tutor to derive those and show its working.
+- **2026-08-18 (step 4)** — **Four rendering defects found by loading the page, none by the build.**
+  (a) Arrow labels were placed at each arrow's midpoint, which put them on top of their own arrow
+  and inside the block, colliding with the mass label and each other — moved beyond the arrowheads,
+  four labels on four different sides. (b) `MARGIN_LEFT` was projectile's 56, but the *left* of the
+  block is where the friction arrow and its label live and the camera holds the block at that
+  margin, so the friction label was clipped by the canvas edge on the very first frame — now 140,
+  sized to hold `MAX_VECTOR_PX` plus a label. (c) The `f_s,max` ghost label was clipped for the same
+  reason. (d) The canvas regime tag added at step 3 both duplicated the new readout STATE row and
+  collided with the normal-force label — **removed**, which is what step 3's own note said to
+  reconsider here.
+
 ## Open questions
 
 1. **How do IB students reach this simulation?** Currently they cannot — A.2 points at momentum.
@@ -205,7 +240,7 @@ single pixel.
 
 ## REMAINING
 
-Steps 4–7. Content artefacts will ship as marked TODO placeholders on the content track
+Steps 5–7. Content artefacts will ship as marked TODO placeholders on the content track
 (founders draft → Peter Syrenne reviews → drop in), exactly as projectile's did:
 
 1. **Concept summary** — `docs/content/newtons-second.md`, `## Concept Summary`. Must cover: that
@@ -226,9 +261,15 @@ projectile sim as template. Report where we are in 3–4 lines. Wait for go. Do 
 (moving, `F = 12`) and `a = 0` with `friction = −8 N` (static, `F = 8`), both verified against
 real module output, plus the exact-zero landing at `1.47 m`.
 
-Steps 2 onward may build on `physics.js`. **Step 2 `Controls.jsx` is built and verified** —
-oxlint clean, `npm run build` clean, and the file parses under esbuild. **Step 3
-`NewtonsCanvas.jsx` is built and its frame loop verified numerically** (see Frame-loop
-verification above). Same build caveat applies to both, and it matters more at step 3: nothing
-imports either file until step 4 wires `SimulationView` and the registry entry, so vite does
-not bundle them and **no pixel of the canvas has ever been rendered**. Next up is step 4.
+**The simulation is LIVE at `/sim/newtons-second`** as of step 4, and has been rendered in a real
+browser for the first time: the free-body diagram draws, the readout reads, Concept renders its
+KaTeX, Practice shows four in-drafting groups, and the Concept→Ask gate unlocks. Console clean. The
+static regime was verified on screen — `F = 7.5 N` gives `friction = −7.50 N` (**not** `−9.8`),
+`F_net = 0`, `a = 0`, with the applied and friction bars at identical lengths.
+
+**Not yet eye-tested: motion.** rAF is throttled in an automated tab (phase 5 measured 3 s wall
+clock advancing 0.03 s simulated), so breakaway, the camera scroll and the coast-to-rest guard have
+been verified numerically but never *watched*. That check is the founders', at
+`http://localhost:5173/sim/newtons-second`.
+
+Next up is step 5, the AP curriculum map link — still gated on the open questions below.

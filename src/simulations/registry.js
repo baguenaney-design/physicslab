@@ -2,6 +2,11 @@ import momentumContent from './momentum/momentumContent.js'
 import MomentumSimulationView from './momentum/SimulationView.jsx'
 import projectileContent from './projectile/projectileContent.js'
 import ProjectileSimulationView from './projectile/SimulationView.jsx'
+import newtonsContent from './newtons-second/newtonsContent.js'
+import NewtonsSimulationView from './newtons-second/SimulationView.jsx'
+// g is fixed for the Newton's second law simulation and defined once, in its Controls. Imported
+// rather than restated so the tutor and the control strip cannot disagree about which g produced N.
+import { GRAVITY as NEWTONS_GRAVITY } from './newtons-second/Controls.jsx'
 
 // Every simulation the site can route to, keyed by its URL slug (/sim/<slug>).
 //
@@ -99,6 +104,62 @@ const registry = {
         vx_ms: frame?.launched ? frame.vx : null,
         vy_ms: frame?.launched ? frame.vy : null,
         speed_ms: frame?.launched ? frame.speed : null,
+      }
+    },
+  },
+
+  'newtons-second': {
+    slug: 'newtons-second',
+    // Reads mid-sentence in the Practice panel's in-drafting copy ("...the AP free response set
+    // for Newton's second law"), so lowercase after the proper noun. The display title comes from
+    // the content file's `# ` heading.
+    topicName: "Newton's second law",
+    content: newtonsContent,
+    SimulationView: NewtonsSimulationView,
+    // AP Unit 2 and IB A.2 are both broader than this simulation — Unit 2 includes connected
+    // systems and Atwood machines, A.2 includes equilibrium — and this sim is one block on a flat
+    // surface. The eyebrow names the narrower scope actually covered, the projectile convention.
+    // The ib eyebrow is carried even though no IB map card points here yet (A.2 links to momentum);
+    // repointing it later needs no other change.
+    eyebrows: {
+      ib: "IB Physics · A.2 — Newton's Second Law",
+      ap: "AP Physics 1 · Unit 2 — Friction & Newton's Second Law",
+    },
+    simulationSublabel: 'Interactive free-body diagram',
+    emptyChatHint: 'Ask about the block you are pushing — the tutor can see your current setup.',
+    initialState: {
+      // The reference case physics.js is verified against: N = 19.6, f_s,max = 9.8, f_k = 5.88,
+      // and 12 > 9.8, so a student who opens the page and presses Run watches it break away at
+      // a = 3.06 m/s².
+      appliedForce: 12,
+      mass: 2,
+      muS: 0.5,
+      muK: 0.3,
+    },
+    // Flat, unit-bearing names — this topic has no subscript convention to match the way momentum's
+    // m1/v1 matches its two-block notation. See format_message in backend/main.py.
+    buildSimState(simState, frame) {
+      return {
+        f_applied_n: simState.appliedForce,
+        mass_kg: simState.mass,
+        mu_s: simState.muS,
+        mu_k: simState.muK,
+        g_ms2: NEWTONS_GRAVITY,
+        // Deliberately NOT sent: N, f_s,max, f_k and a. The prompt file tells the tutor to derive
+        // them from the values above and show its working, and sending the answers would
+        // contradict that instruction — the same reason the momentum and projectile mappers
+        // withhold their derived quantities.
+        //
+        // Nothing here is gated on having started, unlike projectile's launched/in_flight fields.
+        // A projectile that has not been fired has no flight to describe, but a block at rest with
+        // friction holding it IS the physics — velocity 0 in the static regime is a real state, not
+        // an absence of one. These fall back to null only when frame itself is null, which means
+        // the student never opened the Simulation view at all.
+        regime: frame?.regime ?? null,
+        velocity_ms: frame?.velocity ?? null,
+        displacement_m: frame?.position ?? null,
+        elapsed_s: frame?.elapsed ?? null,
+        running: frame?.running ?? false,
       }
     },
   },

@@ -18,7 +18,13 @@ import { GRAVITY } from './Controls.jsx'
 // through paramsRef instead of a snapshot — see the note on the ref below.
 
 // Canvas padding, in px.
-const MARGIN_LEFT = 56
+//
+// MARGIN_LEFT is far wider than projectile's 56 because the LEFT of the block is where the
+// friction arrow and its label live, and the block never travels left of this margin — the camera
+// holds it here until it has moved far enough downrange to start scrolling. The margin therefore
+// has to hold the whole left half of the free-body diagram: the longest arrow (MAX_VECTOR_PX)
+// plus its label. At 56 the friction label was clipped by the canvas edge on the very first frame.
+const MARGIN_LEFT = 140
 const MARGIN_RIGHT = 40
 const MARGIN_TOP = 40
 // Deeper than projectile's 44. The weight arrow is drawn downward from the block's centre and
@@ -306,60 +312,63 @@ function drawVectors(ctx, colors, layout, blockPx, size, dynamics, appliedForce,
     ctx.stroke()
     ctx.setLineDash([])
     ctx.fillStyle = colors.blockB
+    // Clamped inside the drawable area: at low mu the tick sits close to the block, but at the
+    // start of a run the block itself is at the left margin, and a centred label would be cut off
+    // by the canvas edge.
+    // Clamped to the canvas edge as a backstop; MARGIN_LEFT is sized so it never actually binds.
     ctx.textAlign = 'center'
-    ctx.fillText('f_s,max', ghostX, centreY + 22)
+    const half = ctx.measureText('f_s,max').width / 2
+    ctx.fillText('f_s,max', Math.max(ghostX, half + 4), centreY + 24)
     ctx.restore()
   }
+
+  // LABELS GO BEYOND THE ARROWHEAD, never at the arrow's midpoint.
+  //
+  // A midpoint label sits on top of its own arrow and, for anything shorter than the block, inside
+  // the block itself — where it collides with the mass label and with the opposite arrow's label.
+  // Past the tip, each label is in empty space on its own side of the diagram, and the four can
+  // never overlap each other because they are on four different sides.
+  //
+  // The horizontal pair are additionally pushed clear of the block's own edge, so a small force —
+  // whose arrowhead stops inside the block — still gets its label outside it.
+  const clearRight = Math.max(centreX + size / 2, centreX) + 6
+  const clearLeft = Math.min(centreX - size / 2, centreX) - 6
 
   if (show.normal) {
     const tipY = centreY - normal * pxPerNewton
     arrow(ctx, centreX, centreY, centreX, tipY, colors.text)
     ctx.fillStyle = colors.text
-    ctx.textAlign = 'left'
-    ctx.fillText(forceLabel('N', normal), centreX + 8, (centreY + tipY) / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText(forceLabel('N', normal), centreX, tipY - 10)
   }
 
   if (show.weight) {
     // W = mg = N here. Drawn downward through the ground line, which is where MARGIN_BOTTOM's
-    // depth comes from.
+    // depth comes from — and its label still lands above the distance ticks, because LABEL_DROP is
+    // sized off the full MAX_VECTOR_PX.
     const tipY = centreY + normal * pxPerNewton
     arrow(ctx, centreX, centreY, centreX, tipY, colors.text)
     ctx.fillStyle = colors.text
-    ctx.textAlign = 'left'
-    ctx.fillText(forceLabel('W', normal), centreX + 8, (centreY + tipY) / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText(forceLabel('W', normal), centreX, tipY + 10)
   }
 
   if (show.applied) {
     const tipX = centreX + appliedForce * pxPerNewton
     arrow(ctx, centreX, centreY, tipX, centreY, colors.blockA)
     ctx.fillStyle = colors.blockA
-    ctx.textAlign = 'center'
-    // above the line; friction's label goes below it, so the two can never collide near the centre
-    ctx.fillText(forceLabel('F', appliedForce), (centreX + tipX) / 2, centreY - 14)
+    ctx.textAlign = 'left'
+    ctx.fillText(forceLabel('F', appliedForce), Math.max(tipX, clearRight) + 4, centreY)
   }
 
   if (show.friction) {
     const tipX = centreX + friction * pxPerNewton
     arrow(ctx, centreX, centreY, tipX, centreY, colors.blockB)
     ctx.fillStyle = colors.blockB
-    ctx.textAlign = 'center'
-    ctx.fillText(forceLabel('f', friction), (centreX + tipX) / 2, centreY + 14)
+    ctx.textAlign = 'right'
+    ctx.fillText(forceLabel('f', friction), Math.min(tipX, clearLeft) - 4, centreY)
   }
 
-  ctx.restore()
-}
-
-// STATIC or MOVING, above the block. Dimmed text rather than phosphor: this is the same fact the
-// readout's STATE row will carry in phosphor once step 4 wires it, and two phosphor claims of the
-// same thing would compete. Until then it is the only thing on screen that names the regime.
-function drawRegimeTag(ctx, colors, layout, blockPx, size, regime) {
-  ctx.save()
-  ctx.globalAlpha = 0.6
-  ctx.fillStyle = colors.text
-  ctx.font = CANVAS_FONT
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'bottom'
-  ctx.fillText(regime === 'static' ? 'STATIC' : 'MOVING', blockPx, layout.groundY - size - 12)
   ctx.restore()
 }
 
@@ -467,7 +476,6 @@ function NewtonsCanvas({
     const maxVectorPx = Math.min(MAX_VECTOR_PX, layout.groundY - MARGIN_TOP - size / 2)
 
     drawBlock(ctx, colors, layout, blockPx, size, params.mass)
-    drawRegimeTag(ctx, colors, layout, blockPx, size, dynamics.regime)
     drawVectors(
       ctx,
       colors,
