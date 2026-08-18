@@ -12,7 +12,8 @@ or connected systems — those are their own future simulation. Not inclined pla
 
 ## Physics verification — **PASSED**
 
-Numeric, run through node against `physics.js` at step 1. Reference block
+Numeric, run through node against `physics.js` — first at step 1, re-run in full after the
+step 1b integrator amendment. Reference block
 `m = 2 kg, μ_s = 0.5, μ_k = 0.3, g = 9.8`:
 
 - **Required case, MOVING** `F = 12 N` → `N = 19.6`, `f_s,max = 9.8`, `12 > 9.8` so it breaks away,
@@ -31,8 +32,17 @@ Numeric, run through node against `physics.js` at step 1. Reference block
   friction driving the block backwards, impossible. Guarded gives `v = 0` and
   `0.17006802721088435 m`, exactly `1/(2 × 2.94)`. A block coasting under `F = 3` reaches `v = 0`,
   flips to `static`, friction becomes `−3.00 (= −F)`, and holds with no jitter across zero.
-- **60 fps sanity**: `v₀ = 6, a = −2.94, dt = 0.0167` → `v = 5.950902`, ordinary step, guard not
-  triggered.
+- **Exact-zero landing (found 2026-08-18, fixed in the amendment).** `v₀ = 2.94, F = 0, dt = 1`
+  puts `v₁` on **exactly** 0, so the sign never flips and the stop-at-rest guard correctly does not
+  fire — the block stops precisely at the frame boundary. Semi-implicit Euler then advanced the
+  position by `v₁·dt = 0` and **lost 1.47 m of real travel in one frame**. The closed form gives
+  `2.94(1) + ½(−2.94)(1²) = 1.47 m`, matching `v₀²/(2|a|) = 1.47 m` from `v² = u² + 2as` — a route
+  with no `dt` in it. Verified against the module: `position 1.47, velocity 0`.
+- **Launch frame, same fix.** `v₀ = 0, F = 12, dt = 1` → `½(3.06)(1²) = 1.53 m`. Semi-implicit
+  Euler gave `a·dt² = 3.06 m`, twice the real distance, so the amendment corrects the frame a block
+  breaks away on as well as the frame it lands on.
+- **60 fps sanity**: `v₀ = 6, a = −2.94, dt = 0.0167` → `v = 5.950902`, `x = 0.0997900317 m`,
+  ordinary step, guard not triggered.
 
 Visual eye-test in a real browser: **not yet done** — no canvas exists until step 3.
 
@@ -43,7 +53,8 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 | pre | approved build plan, no code | `76ff865` |
 | 0 | progress tracker | `8521d72` |
 | 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
-| 2 | `Controls.jsx` | *pending — hash recorded next commit* |
+| 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | *pending* |
+| 2 | `Controls.jsx` | `f874221` |
 | 3 | `NewtonsCanvas.jsx` | — |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
 | 5 | AP curriculum map link | — |
@@ -71,14 +82,26 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
   takes one `to` per card. This sim is reachable from the **AP map only** for now. The registry
   still carries both `ib` and `ap` eyebrows, so repointing later needs no other change. See Open
   questions.
-- **2026-08-15 (step 1)** — **`advance()` integrates rather than using a closed form**, and it
-  lives in `physics.js` rather than the canvas so the canvas computes nothing physical. Semi-implicit
-  Euler, because the live sliders mean acceleration can change mid-run and a closed form would have
-  to freeze the parameters. It carries a **stop-at-rest guard**: when `v` changes sign inside a
-  step, friction brought the block to rest partway through the frame, and unguarded Euler carries it
-  out the other side — friction driving a body backwards, which is impossible. Clamped to `v = 0`
-  and advanced by the true stopping distance `v₀²/(2|a|)` instead, so the next frame re-enters the
-  static test at rest.
+- **2026-08-15 (step 1), SUPERSEDED 2026-08-18** — `advance()` steps rather than solving the whole
+  run in closed form, and it lives in `physics.js` rather than the canvas so the canvas computes
+  nothing physical. Originally **semi-implicit Euler**, because the live sliders mean acceleration
+  can change mid-run and a single closed form would have to freeze the parameters. It carries a
+  **stop-at-rest guard**: when `v` changes sign inside a step, friction brought the block to rest
+  partway through the frame, and unguarded integration carries it out the other side — friction
+  driving a body backwards, which is impossible. Clamped to `v = 0` and advanced by the true
+  stopping distance `v₀²/(2|a|)` instead, so the next frame re-enters the static test at rest.
+  *The stepper and the guard both stand. The position formula does not — see below.*
+- **2026-08-18 (step 1b, approved plan amendment)** — **the position update is now the closed form
+  `x₁ = x₀ + v₀·dt + ½·a·dt²`**, replacing semi-implicit Euler's `x₁ = x₀ + v₁·dt`. This is not a
+  precision tweak, it is a correctness fix: `resolveDynamics` is called once per step and its
+  acceleration held constant across it, so `a` is piecewise-constant by construction and the closed
+  form is **exact** within a frame, with no truncation error. Semi-implicit Euler was wrong in a
+  case the sliders can reach — a block landing on exactly `v = 0` travelled 0 m instead of 1.47 m
+  (see Physics verification). The live-slider reasoning above is untouched: `a` is still re-resolved
+  every frame, constant *within* a frame and free to change *between* frames. The stop-at-rest guard
+  is **still required** and unchanged — being exact for constant acceleration is worth nothing past
+  the instant the block stops, where friction switches from `−f_k` to `−F_applied` and the frame's
+  `a` stops describing it.
 - **2026-08-15 (step 1)** — `direction()` is used instead of `Math.sign`, because `Math.sign(-0)`
   is `-0` and a `-0` leaking into a friction direction renders as `-0.00 N` in the readout.
 - **2026-08-15 (planning)** — Three corrections to the original brief, verified against the repo:
@@ -138,7 +161,10 @@ Steps 3–7. Content artefacts will ship as marked TODO placeholders on the cont
 On "resume newtons": read CLAUDE.md, this file, `git log --oneline | grep "phase 6"`, and the
 projectile sim as template. Report where we are in 3–4 lines. Wait for go. Do not start building.
 
-**The physics gate is PASSED as of `fbad8de`** — both required cases verified against real output.
+**The physics gate is PASSED, re-run and still passing after the step 1b amendment** — `a = 3.06`
+(moving, `F = 12`) and `a = 0` with `friction = −8 N` (static, `F = 8`), both verified against
+real module output, plus the exact-zero landing at `1.47 m`.
+
 Steps 2 onward may build on `physics.js`. **Step 2 `Controls.jsx` is built and verified** —
 oxlint clean, `npm run build` clean, and the file parses under esbuild (the build alone does
 not exercise it: nothing imports `Controls.jsx` until step 4 wires the registry entry, so vite

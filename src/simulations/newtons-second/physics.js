@@ -184,29 +184,43 @@ export function resolveDynamics({ mass, g, muS, muK, appliedForce, velocity }) {
   }
 }
 
-// One integration step. Semi-implicit (symplectic) Euler:
+// One integration step. EXACT integration of constant acceleration, not an Euler approximation:
+//
 //   v₁ = v₀ + a·dt
-//   x₁ = x₀ + v₁·dt
+//   x₁ = x₀ + v₀·dt + ½·a·dt²
 //
-// source: standard numerical integration of Newton's second law. The velocity is updated first and
-//         the NEW velocity used for the position, which is what makes it semi-implicit rather than
-//         plain forward Euler. For the constant acceleration this model produces it is stable and
-//         does not drift.
+// source: the constant-acceleration kinematic equations, v = u + at and s = ut + ½at²,
+//         AP Physics 1 formula sheet / IB data booklet.
 //
-// Numerical integration rather than the closed form v = u + at, because the sliders stay live while
-// the block moves: the student can change the applied force mid-run and the acceleration changes
-// under them. A closed form would have to freeze the parameters at the start of the run, and the
-// whole point of this simulation is watching the block break loose as the force is dialled up past
-// the threshold.
+// Exact, not approximate, and the distinction matters. resolveDynamics is called once per step and
+// the acceleration it returns is held constant across that whole step, so acceleration is
+// piecewise-constant by construction — one value per frame. The closed form above integrates a
+// constant acceleration with no truncation error at all, so within a frame this is not a numerical
+// method with an error term. It is the answer.
+//
+// This REPLACES semi-implicit Euler (x₁ = x₀ + v₁·dt, position advanced by the end-of-step
+// velocity), which was wrong in a case the sliders can reach — see the exact-zero-landing test
+// below, where it loses 1.47 m of real travel.
+//
+// It is still a stepper rather than one closed form over the whole run, because the parameters are
+// re-resolved every frame: the sliders stay live while the block moves, so the student can change
+// the applied force mid-run and the acceleration changes under them. A single closed form over the
+// run would have to freeze the parameters at the start, and the whole point of this simulation is
+// watching the block break loose as the force is dialled up past the threshold. Constant a WITHIN
+// a frame; free to change BETWEEN frames.
 //
 // STOP-AT-REST — the guard that makes friction honest.
-// A decelerating block can cross v = 0 partway through a frame. Left alone, Euler carries the
-// velocity straight through zero and out the other side: the block reverses, driven backwards by
-// friction. That is physically impossible — kinetic friction removes energy, it never supplies it,
-// and it cannot push a body in the direction it was never going.
+// A decelerating block can cross v = 0 partway through a frame. Left alone, the integrator carries
+// the velocity straight through zero and out the other side: the block reverses, driven backwards
+// by friction. That is physically impossible — kinetic friction removes energy, it never supplies
+// it, and it cannot push a body in a direction it was never going.
 //
-// So when the sign of v flips within a step, the velocity is clamped to exactly zero and the
-// position advanced by the true stopping distance instead of by v₁·dt:
+// The closed form does NOT remove the need for this guard, and it is worth being clear why. Being
+// exact for constant acceleration is only worth anything while the acceleration IS constant, and
+// past the instant the block stops it is not: the block goes static, friction switches from −f_k to
+// −F_applied, and this frame's `a` no longer describes it. So when the sign of v flips within a
+// step, the velocity is clamped to exactly zero and the position advanced by the true stopping
+// distance instead:
 //
 //   d = v₀² / (2·|a|)      from v² = u² + 2as with v = 0
 //
@@ -214,11 +228,30 @@ export function resolveDynamics({ mass, g, muS, muK, appliedForce, velocity }) {
 // is what lets a block coast to a halt and STAY halted under a force below the static ceiling —
 // without this guard it would jitter back and forth across zero forever.
 //
-// test: v₀=1, F=0, m=2, μ_k=0.3, g=9.8 → a = −2.94, dt=1
-//       naive Euler: v₁ = 1 + (−2.94)(1) = −1.94  ← block reverses. WRONG.
-//       guarded:     v₁ = 0, distance = 1²/(2×2.94) = 0.17006802721088435 m
-// test: v₀=6, a=−2.94, dt=0.0167 (a 60fps frame) → v₁ = 5.950902, no sign flip, ordinary step
-// test: v₀=0, F=8 on the reference block → static, a=0, so v₁=0 and the block does not move at all
+// test: THE EXACT-ZERO LANDING — v₀=2.94, F=0, m=2, μ_k=0.3, g=9.8 → a = −2.94, dt=1
+//       v₁ = 2.94 + (−2.94)(1) = 0 EXACTLY. The sign never flips, so the stop-at-rest guard does
+//       not fire — and it should not, because the block stops precisely at the end of the frame
+//       rather than partway through it. The step is an ordinary one; it is the position formula
+//       that has to be right.
+//         semi-implicit Euler: x = v₁·dt = 0 × 1 = 0 m   ← the block stopped but never travelled.
+//                                                          1.47 m lost, in a single frame. WRONG.
+//         closed form:         x = 2.94(1) + ½(−2.94)(1²) = 1.47 m
+//       Cross-check by a route with no dt in it at all — v² = u² + 2as with v = 0 gives
+//       d = v₀²/(2|a|) = 8.6436/5.88 = 1.47 m. Same number, so the closed form and the guard agree
+//       exactly at the boundary between them, which is what makes the two branches one method
+//       rather than two.
+// test: SIGN FLIP, guard fires — v₀=1, F=0, same block → a = −2.94, dt=1
+//       unguarded: v₁ = 1 + (−2.94)(1) = −1.94  ← block reverses under friction. WRONG.
+//       guarded:   v₁ = 0, distance = 1²/(2×2.94) = 0.17006802721088435 m
+//       (the closed form would give 1(1) + ½(−2.94)(1²) = −0.47 m here: past the stop point it is
+//       integrating an acceleration that no longer applies, which is exactly what the guard is for)
+// test: ORDINARY STEP, 60 fps — v₀=6, F=0, same block, dt=0.0167
+//       v₁ = 5.950902, x = 6(0.0167) + ½(−2.94)(0.0167²) = 0.0997900317 m. No sign flip.
+// test: v₀=0, F=8 on the reference block → static, a=0, so v₁=0 and x is unchanged: 0(dt) + 0 = 0.
+//       The block does not move at all, which is the whole content of the static case.
+// test: v₀=0, F=12 on the reference block, dt=1 → breaks away, a=3.06
+//       x = 0(1) + ½(3.06)(1²) = 1.53 m. Semi-implicit Euler gave a·dt² = 3.06 m here — twice the
+//       real distance — so the fix corrects the launch frame as well as the landing one.
 export function advance({ position, velocity, mass, g, muS, muK, appliedForce }, dt) {
   const dynamics = resolveDynamics({ mass, g, muS, muK, appliedForce, velocity })
   const nextVelocity = velocity + dynamics.acceleration * dt
@@ -234,7 +267,10 @@ export function advance({ position, velocity, mass, g, muS, muK, appliedForce },
   }
 
   return {
-    position: position + nextVelocity * dt,
+    // x₁ = x₀ + v₀·dt + ½·a·dt²  — the ½·a·dt² term is the travel that semi-implicit Euler
+    // (x₀ + v₁·dt) folded into its use of the end-of-step velocity, and dropped entirely when
+    // that velocity landed on zero.
+    position: position + velocity * dt + 0.5 * dynamics.acceleration * dt * dt,
     velocity: nextVelocity,
     dynamics,
   }
