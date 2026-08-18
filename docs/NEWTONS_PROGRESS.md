@@ -73,7 +73,7 @@ single pixel.
 | 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | `4a81cf7` |
 | 2 | `Controls.jsx` | `f874221` |
 | 3 | `NewtonsCanvas.jsx` | `70dac9e` |
-| 4 | Readout + SimulationView + content + registry entry — **LIVE** | *pending — hash recorded next commit* |
+| 4 | Readout + SimulationView + content + registry entry — **LIVE** | `6ed13c3` |
 | 5 | AP curriculum map link | — |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
 | 7 | cross-sim roster sweep — **report only, no silent edits** | — |
