@@ -72,7 +72,7 @@ single pixel.
 | 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
 | 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | `4a81cf7` |
 | 2 | `Controls.jsx` | `f874221` |
-| 3 | `NewtonsCanvas.jsx` | *pending — hash recorded next commit* |
+| 3 | `NewtonsCanvas.jsx` | `70dac9e` |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
 | 5 | AP curriculum map link | — |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
