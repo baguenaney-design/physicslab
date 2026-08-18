@@ -1,10 +1,12 @@
 import EditorialShell from '../components/ui/EditorialShell'
 import { CurriculumSection } from '../components/ui/TopicCard'
 
-// The four AP Physics courses. Kinematics and Linear Momentum in Physics 1 are
-// the only topics with a simulation built; everything else is greyed rather
-// than hidden. The same MECHANICS_UNITS list backs Physics C: Mechanics, which
-// is passed no links — the simulations are pitched at the algebra-based course.
+// The four AP Physics courses. Kinematics, Force and Translational Dynamics,
+// and Linear Momentum in Physics 1 are the only topics with a simulation built;
+// everything else is greyed rather than hidden. The same MECHANICS_UNITS list
+// backs Physics C: Mechanics, which is passed no links — the simulations are
+// pitched at the algebra-based course, so its Unit 2 still reads "Coming soon"
+// even though Physics 1's now links.
 //
 // Unit numbers are asserted only for Physics 1 and C: Mechanics, whose seven
 // units are listed here in full. The Physics 2 and C: E&M entries are topic
@@ -33,11 +35,14 @@ const COURSES = [
   {
     heading: 'AP Physics 1',
     subheading: 'Algebra-based. Seven units.',
-    // Kinematics links to the projectile simulation. The unit is broader than the simulation —
-    // it also covers 1-D motion and motion graphs — so the simulation's sidebar eyebrow names
-    // the narrower scope on arrival. See the projectile entry in src/simulations/registry.js.
+    // Kinematics links to the projectile simulation and Force and Translational Dynamics to the
+    // Newton's second law one. Both units are broader than the simulation behind them — Unit 1
+    // also covers 1-D motion and motion graphs, Unit 2 also covers connected systems, Atwood
+    // machines and inclined planes — so each simulation's sidebar eyebrow names the narrower
+    // scope on arrival. See the entries in src/simulations/registry.js.
     topics: numbered(MECHANICS_UNITS, {
       Kinematics: '/sim/projectile?from=ap',
+      'Force and Translational Dynamics': '/sim/newtons-second?from=ap',
       'Linear Momentum': '/sim/momentum?from=ap',
     }),
   },
@@ -79,7 +84,7 @@ function APCurriculumMap() {
             maxWidth: '620px',
           }}
         >
-          All four courses. Two simulations are live so far — the rest are on the way.
+          All four courses. Three simulations are live so far — the rest are on the way.
         </p>
 
         {COURSES.map((course) => (

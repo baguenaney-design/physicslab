@@ -5,9 +5,16 @@ import { CurriculumSection } from '../components/ui/TopicCard'
 // with a simulation built; everything else is shown greyed rather than hidden
 // so a student can see the whole roadmap.
 //
-// A.1 Kinematics links to the projectile simulation. The topic is broader than
-// the simulation, so the simulation's sidebar eyebrow names the narrower scope
-// on arrival — see the projectile entry in src/simulations/registry.js.
+// A.2 is ONE syllabus topic across TWO cards, because it is one syllabus topic
+// with two simulations behind it — its forces half and its momentum half were
+// built separately. TopicCard carries a single destination per card, so a second
+// card is how both stay reachable, and the shared code 'A.2' is what says they
+// are the same topic. Their titles must differ: CurriculumSection keys its cards
+// on topic.title.
+//
+// Each topic is broader than the simulation behind it, so each simulation's
+// sidebar eyebrow names the narrower scope on arrival — see the entries in
+// src/simulations/registry.js.
 //
 // The `from=ib` query param is what the simulation page reads to render its
 // back link — see SimulationPage.jsx.
@@ -17,7 +24,8 @@ const SECTIONS = [
     heading: 'Section A — Space, time and motion',
     topics: [
       { code: 'A.1', title: 'Kinematics', to: '/sim/projectile?from=ib' },
-      { code: 'A.2', title: 'Forces and momentum', to: '/sim/momentum?from=ib' },
+      { code: 'A.2', title: "Forces and momentum — Newton's second law", to: '/sim/newtons-second?from=ib' },
+      { code: 'A.2', title: 'Forces and momentum — momentum and impulse', to: '/sim/momentum?from=ib' },
       { code: 'A.3', title: 'Work, energy and power' },
       { code: 'A.4', title: 'Rigid body mechanics' },
       { code: 'A.5', title: 'Relativity' },
@@ -79,7 +87,7 @@ function IBCurriculumMap() {
             maxWidth: '620px',
           }}
         >
-          The full syllabus, sections A through E. Two simulations are live so far — the rest are
+          The full syllabus, sections A through E. Three simulations are live so far — the rest are
           on the way.
         </p>
 
