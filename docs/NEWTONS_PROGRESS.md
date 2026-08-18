@@ -44,7 +44,24 @@ step 1b integrator amendment. Reference block
 - **60 fps sanity**: `v₀ = 6, a = −2.94, dt = 0.0167` → `v = 5.950902`, `x = 0.0997900317 m`,
   ordinary step, guard not triggered.
 
-Visual eye-test in a real browser: **not yet done** — no canvas exists until step 3.
+Visual eye-test in a real browser: **not yet done** — nothing renders until step 4 wires
+`SimulationView` and the registry entry.
+
+## Frame-loop verification — step 3, **PASSED (numerically)**
+
+The canvas's loop driven through node at `dt = 1/60`, the same call sequence `step()` makes, on the
+reference block. This checks the three regimes the simulation has to show; it does **not** check a
+single pixel.
+
+- **Held.** `F = 8` for 120 frames → `x` stays exactly `0`, regime `static` throughout, friction
+  `−8.00 N` (`= −F`, not `−9.8`). No creep.
+- **Breakaway.** `F = 12` for 60 frames → `v = 3.060000`, `x = 1.530000`. Matches `a·t = 3.06` and
+  `½at² = 1.53` to the displayed digit — 60 accumulated steps reproducing the closed form is what
+  "exact for piecewise-constant `a`" means in practice, and it would not hold under the old Euler.
+- **Coast to rest.** `F = 12` for 60 frames, then `F = 0` for 300 → `v = 0` exactly,
+  `x = 3.122449 m`. Hand check: `1.53 + 3.06²/(2×2.94) = 1.53 + 1.592449 = 3.122449`. Regime flips
+  `kinetic → static`, **zero reversals, minimum velocity 0** — it never goes negative and does not
+  oscillate across zero over the remaining ~200 frames it sits at rest.
 
 ## Status
 
@@ -55,7 +72,7 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 | 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
 | 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | `4a81cf7` |
 | 2 | `Controls.jsx` | `f874221` |
-| 3 | `NewtonsCanvas.jsx` | — |
+| 3 | `NewtonsCanvas.jsx` | *pending — hash recorded next commit* |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
 | 5 | AP curriculum map link | — |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
@@ -130,6 +147,50 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
   real markup (`μ<sub>s</sub>`) rather than a Unicode subscript glyph Inter may not carry. `Slider`
   already renders `{label}` into a span, so the component needed no change.
 
+- **2026-08-18 (step 3)** — **Live parameters travel through `paramsRef`, not a snapshot.**
+  `ProjectileCanvas` locks its parameters into `sim.params` at Launch; `step()` here would
+  otherwise close over the applied force as it was when Run was pressed and never see the slider
+  move — the opposite of what this sim is for. The ref is written in an effect, so a running loop
+  can read parameters one frame stale (17 ms at 60 fps); below perception, and not worth a
+  write-during-render to avoid.
+- **2026-08-18 (step 3)** — **`Run` / `Pause`, not projectile's `Launch`.** Launch means "lock
+  these parameters and fire". Nothing is locked here, so the button only starts and stops the
+  clock; Pause keeps position and velocity, Reset returns to `t = x = v = 0`. Divergence from the
+  brief's "Apply/Launch" wording, for that reason.
+- **2026-08-18 (step 3)** — **Four independent vector toggles, superseding the plan's single
+  `Force vectors` toggle** (per the step 3 brief). Rendered as a clickable legend — swatch plus
+  name — because the swatch is the only thing telling a student which colour is which force, and
+  normal/weight share a colour precisely because they are the pair that cancels.
+- **2026-08-18 (step 3)** — **The vector scale's reference excludes the instantaneous friction**,
+  taking `max(N, |F|, f_s,max)` instead. If friction fed the shared px-per-newton scale, its drop
+  from `f_s,max` to `μ_k·N` at breakaway would rescale every arrow on the same frame and cancel
+  itself out on screen — erasing the one thing the diagram exists to show.
+- **2026-08-18 (step 3)** — **Two additions beyond the plan's step 3, flagged not slipped in.**
+  (a) An `f_s,max` **ghost tick**: a dashed marker the solid friction arrow grows toward below the
+  threshold and snaps back from at breakaway. The plan says the snap is the lesson drawn; the ghost
+  is what the snap is measured against. (b) A **regime tag** (`STATIC`/`MOVING`) above the block, in
+  dimmed text rather than phosphor — until step 4 nothing on screen names the regime, and dimming
+  keeps it from competing with the readout's phosphor STATE row once that exists. **Reconsider (b)
+  at step 4** if it reads as duplication.
+- **2026-08-18 (step 3)** — **Layout is correct by construction, not by eye**, because nothing can
+  be eye-tested at this step. `MARGIN_BOTTOM = 96` and distance labels at `groundY + MAX_VECTOR_PX
+  + 10` sit below the deepest arrow tip any slider combination can produce, so a label and an
+  arrowhead can never collide; and the arrow length is capped to `groundY − MARGIN_TOP − size/2`,
+  so the normal arrow cannot leave the top of a short viewport under a 10 kg block.
+- **2026-08-18 (step 3)** — **The block is a tinted fill with a solid outline, not momentum's flat
+  block-a rectangle.** The applied-force arrow is block-a and starts at the block's centre; a solid
+  block-a body would swallow its first half, and an arrow has to be legible over the body it acts
+  on for the drawing to be a free-body diagram at all.
+- **2026-08-18 (step 3)** — **`redraw()` re-resolves the forces at the instant it draws**, rather
+  than reusing the `dynamics` `advance()` returned (which describe the interval just integrated),
+  so the arrows and the position on screen always describe the same moment. Still `physics.js`
+  doing the work — the canvas computes nothing physical.
+- **2026-08-18 (step 3)** — `niceTickStep` and `arrow` are **duplicated** from `ProjectileCanvas`
+  rather than exported from it: that file is on the phase 6 do-not-modify list, and duplicating
+  small view helpers is this repo's recorded convention. Canvas text uses
+  `'JetBrains Mono', ui-monospace, monospace` — projectile predates the font being loaded and uses
+  the bare fallback stack.
+
 ## Open questions
 
 1. **How do IB students reach this simulation?** Currently they cannot — A.2 points at momentum.
@@ -144,7 +205,7 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 
 ## REMAINING
 
-Steps 3–7. Content artefacts will ship as marked TODO placeholders on the content track
+Steps 4–7. Content artefacts will ship as marked TODO placeholders on the content track
 (founders draft → Peter Syrenne reviews → drop in), exactly as projectile's did:
 
 1. **Concept summary** — `docs/content/newtons-second.md`, `## Concept Summary`. Must cover: that
@@ -166,6 +227,8 @@ projectile sim as template. Report where we are in 3–4 lines. Wait for go. Do 
 real module output, plus the exact-zero landing at `1.47 m`.
 
 Steps 2 onward may build on `physics.js`. **Step 2 `Controls.jsx` is built and verified** —
-oxlint clean, `npm run build` clean, and the file parses under esbuild (the build alone does
-not exercise it: nothing imports `Controls.jsx` until step 4 wires the registry entry, so vite
-does not bundle it yet). Next up is step 3, `NewtonsCanvas.jsx`.
+oxlint clean, `npm run build` clean, and the file parses under esbuild. **Step 3
+`NewtonsCanvas.jsx` is built and its frame loop verified numerically** (see Frame-loop
+verification above). Same build caveat applies to both, and it matters more at step 3: nothing
+imports either file until step 4 wires `SimulationView` and the registry entry, so vite does
+not bundle them and **no pixel of the canvas has ever been rendered**. Next up is step 4.
