@@ -76,7 +76,7 @@ single pixel.
 | 4 | Readout + SimulationView + content + registry entry — **LIVE** | `6ed13c3` |
 | 5 | AP **and IB** curriculum map links | `79c8dcc` |
 | 6 | `backend/prompts/newtons-second.txt` + `format_newtons_state` | — |
-| 7 | cross-sim roster sweep — **applied, 2 lines** | *pending — hash recorded next commit* |
+| 7 | cross-sim roster sweep — **applied, 2 lines** | `ff90cba` |
 
 ## Decisions
 
