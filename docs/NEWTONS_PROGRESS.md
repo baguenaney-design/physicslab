@@ -53,7 +53,7 @@ Visual eye-test in a real browser: **not yet done** — no canvas exists until s
 | pre | approved build plan, no code | `76ff865` |
 | 0 | progress tracker | `8521d72` |
 | 1 | `newtons-second/physics.js` — **accuracy gate, PASSED** | `fbad8de` |
-| 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | *pending* |
+| 1b | `advance()` closed-form integrator — approved plan amendment, gate re-run | `4a81cf7` |
 | 2 | `Controls.jsx` | `f874221` |
 | 3 | `NewtonsCanvas.jsx` | — |
 | 4 | Readout + SimulationView + content + registry entry — goes live | — |
