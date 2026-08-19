@@ -68,9 +68,9 @@ export const A1_FOLDER = {
       summary:
         'Launch a projectile and watch the trajectory, the velocity components and the range ' +
         'resolve in real time. Four views: simulation, concept, practice and the grounded tutor.',
-      // The existing route, unchanged. ?from=a1 is an origin key in src/topics/origins.js, so the
-      // back link inside the simulation returns here rather than to the full map.
-      to: '/sim/projectile?from=a1',
+      // The existing route, unchanged and bare. TopicFolder appends ?from= and ?via= when it
+      // renders the card — the origin is the page's business, not this file's.
+      to: '/sim/projectile',
     },
   ],
 }

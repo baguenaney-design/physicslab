@@ -65,9 +65,9 @@ export const A2_FOLDER = {
       summary:
         'Push a block against static and kinetic friction and watch the free-body diagram resolve ' +
         'in real time. Four views: simulation, concept, practice and the grounded tutor.',
-      // The existing route, unchanged. ?from=a2 is an origin key in SimulationPage's ORIGINS map,
-      // so the back link inside the simulation returns here rather than to the full map.
-      to: '/sim/newtons-second?from=a2',
+      // The existing route, unchanged and bare. TopicFolder appends ?from= and ?via= when it
+      // renders the card — the origin is the page's business, not this file's.
+      to: '/sim/newtons-second',
     },
     {
       id: 'force-types',
@@ -98,7 +98,7 @@ export const A2_FOLDER = {
         'kinetic energy only in the elastic one, and the inelastic mode shows how much is lost.',
       // As above: the real momentum route, reached through the folder instead of through its own
       // map card. The simulation itself is untouched.
-      to: '/sim/momentum?from=a2',
+      to: '/sim/momentum',
     },
     {
       id: 'quadratic-drag',

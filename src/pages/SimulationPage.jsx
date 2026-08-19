@@ -6,16 +6,20 @@ import PracticePanel from '../components/sim/PracticePanel'
 import ChatPanel from '../components/sim/ChatPanel'
 import registry from '../simulations/registry.js'
 import { countQuestions } from '../simulations/contentParser.js'
-import { ORIGINS, DEFAULT_ORIGIN } from '../topics/origins.js'
+import { resolveBackLink, resolveCurriculum } from '../topics/origins.js'
 
 // The shell every simulation is rendered into. It owns the sidebar, the four-view switch and the
 // Concept→Ask gate; everything topic-specific comes from src/simulations/registry.js, keyed by
 // the :topic route param.
 
-// Where the student came from, carried in ?from= by the curriculum map and topic folder links.
-// Moved to src/topics/origins.js now that TopicFolder reads the same param: the folder's back
-// link and the simulation's back link have to agree about what each origin means, and two copies
-// of that map would eventually disagree.
+// Where the student came from, carried in ?from= (which curriculum) and ?via= (which folder, if
+// any) by the curriculum map and topic folder links. Both are resolved in src/topics/origins.js,
+// which is also what TopicFolder reads: the folder's back link and the simulation's back link have
+// to agree about what each origin means, and two copies of that logic would eventually disagree.
+//
+// The eyebrow keys on the curriculum alone. It used to key on the raw ?from= value, which meant a
+// student arriving through a folder got whatever string was filed under that folder's code — an
+// IB-worded one, even on the AP track. See the header of origins.js.
 const DEFAULT_EYEBROW = 'Mechanics'
 
 // The tutor is the one view that is earned. It opens once the student has been to Concept —
@@ -46,6 +50,7 @@ function navItems(topic, questionCount, conceptSeen) {
 function SimulationPage({ slug }) {
   const [searchParams] = useSearchParams()
   const from = searchParams.get('from')
+  const via = searchParams.get('via')
 
   const topic = registry[slug]
 
@@ -100,8 +105,8 @@ function SimulationPage({ slug }) {
       }}
     >
       <TopicSidebar
-        backLink={ORIGINS[from] ?? DEFAULT_ORIGIN}
-        eyebrow={topic.eyebrows[from] ?? DEFAULT_EYEBROW}
+        backLink={resolveBackLink({ from, via })}
+        eyebrow={topic.eyebrows[resolveCurriculum(from)] ?? DEFAULT_EYEBROW}
         title={content.title}
         items={navItems(topic, countQuestions(content), conceptSeen)}
         activeId={view}

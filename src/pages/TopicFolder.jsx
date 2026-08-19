@@ -7,7 +7,7 @@ import 'katex/dist/katex.min.css'
 import EditorialShell from '../components/ui/EditorialShell'
 import PromissoryNote from '../components/ui/PromissoryNote'
 import topicRegistry from '../topics/topicRegistry.js'
-import { ORIGINS, DEFAULT_ORIGIN } from '../topics/origins.js'
+import { resolveBackLink, resolveCurriculum } from '../topics/origins.js'
 
 // A topic folder. Sits between the curriculum map and a simulation: the map card opens the topic,
 // and the topic lists everything in it, of which only some items have a simulation behind them.
@@ -174,9 +174,9 @@ function Cta({ label, hovered }) {
   )
 }
 
-function SimItem({ item, tags }) {
+function SimItem({ item, tags, to }) {
   return (
-    <ItemCardShell to={item.to}>
+    <ItemCardShell to={to}>
       {(hovered) => (
         <>
           <ItemBody item={item} tags={tags} />
@@ -221,10 +221,10 @@ function ExtensionItem({ item, tags }) {
   )
 }
 
-function ItemCard({ item, tags, taughtHref }) {
-  if (item.kind === 'sim') return <SimItem item={item} tags={tags} />
+function ItemCard({ item, tags, href }) {
+  if (item.kind === 'sim') return <SimItem item={item} tags={tags} to={href(item)} />
   if (item.kind === 'extension') return <ExtensionItem item={item} tags={tags} />
-  return <TaughtItemCard item={item} tags={tags} to={taughtHref(item)} />
+  return <TaughtItemCard item={item} tags={tags} to={href(item)} />
 }
 
 function TopicFolder() {
@@ -242,13 +242,37 @@ function TopicFolder() {
   // student who came from one map is never shown the other's numbering — the convention
   // registry.js `eyebrows` established for simulations. A folder reached without an origin, or
   // from an origin the topic carries no number for, falls back to the IB code.
-  const backLink = ORIGINS[from] ?? DEFAULT_ORIGIN
-  const displayCode = topic.codes[from] ?? topic.codes.ib
+  const backLink = resolveBackLink({ from })
+  const displayCode = topic.codes[resolveCurriculum(from)] ?? topic.codes.ib
 
-  // The origin rides along into a taught item so the whole chain — map, folder, section, back —
-  // keeps showing one curriculum's numbering.
-  const taughtHref = (item) =>
-    item.content ? `/topic/${code}/${item.id}${from ? `?from=${from}` : ''}` : null
+  // Every link out of a folder carries the curriculum forward, so the whole chain — map, folder,
+  // item, back — keeps showing one curriculum's numbering.
+  //
+  // A simulation link also carries ?via=, naming this folder as the hop, which is what its back
+  // link returns to. The two facts stay in two params: without that, a folder link had to choose
+  // between telling the simulation which curriculum to word itself for and telling it where to go
+  // back to, and choosing the second is what showed AP students an IB eyebrow.
+  //
+  // Composed here rather than written into the topic data files, which is where the old
+  // ?from=<code> strings lived. A data file should say WHICH simulation an item is, not how the
+  // student got to it — that is this page's business, and only this page knows the origin.
+  const curriculum = resolveCurriculum(from)
+  const query = (params) =>
+    Object.entries(params)
+      .filter(([, value]) => value)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&')
+
+  const href = (item) => {
+    if (item.kind === 'sim') {
+      const search = query({ from: curriculum, via: code })
+      return search ? `${item.to}?${search}` : item.to
+    }
+    // A taught item with no data file yet has no page to link to.
+    if (!item.content) return null
+    const search = query({ from: curriculum })
+    return search ? `/topic/${code}/${item.id}?${search}` : `/topic/${code}/${item.id}`
+  }
 
   return (
     <EditorialShell>
@@ -304,7 +328,7 @@ function TopicFolder() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {topic.items.map((item) => (
-            <ItemCard key={item.id} item={item} tags={topic.tags} taughtHref={taughtHref} />
+            <ItemCard key={item.id} item={item} tags={topic.tags} href={href} />
           ))}
         </div>
       </div>

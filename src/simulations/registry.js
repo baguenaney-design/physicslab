@@ -23,6 +23,13 @@ import { GRAVITY as NEWTONS_GRAVITY } from './newtons-second/Controls.jsx'
 // is not its own unit in either syllabus — it sits inside AP Physics 1 Unit 1 and IB A.1, both
 // titled "Kinematics" — so its eyebrow names the narrower scope the simulation actually covers.
 // A student who came from one map is never shown the other's numbering.
+//
+// One key per curriculum, and that is the whole set. Entries named after topic folders used to sit
+// here too, for students arriving through one; they were an artefact of ?from= carrying both the
+// curriculum and the route back, which meant a folder arrival lost the curriculum and needed a
+// string of its own to fall back on. Those strings were IB-worded, so an AP student reaching a
+// simulation through a folder was shown IB numbering. ?via= now carries the folder separately and
+// ?from= is always a curriculum, so these two keys cover every arrival. See src/topics/origins.js.
 
 const registry = {
   momentum: {
@@ -34,14 +41,12 @@ const registry = {
     content: momentumContent,
     SimulationView: MomentumSimulationView,
     eyebrows: {
-      // Names the whole topic, which was right while the IB map card for A.2 was this simulation.
-      // Kept unchanged so bookmarked and pasted ?from=ib links still resolve.
-      ib: 'IB Physics · Topic A.2',
+      // Was 'IB Physics · Topic A.2', naming the whole topic, which was right while the IB map
+      // card for A.2 opened this simulation directly. That card now opens the A.2 folder, so the
+      // justification for the broader wording is spent and this matches the other two entries:
+      // the narrower scope the simulation actually covers.
+      ib: 'IB Physics · A.2 — Momentum and Impulse',
       ap: 'AP Physics 1 · Unit 4',
-      // Arriving from the A.2 topic folder, where this simulation is one item among several, so
-      // the eyebrow names the narrower scope — the convention the other two entries follow.
-      // Without this key the eyebrow falls back to DEFAULT_EYEBROW in SimulationPage.jsx.
-      a2: 'IB Physics · A.2 — Momentum and Impulse',
     },
     // Shown in the Simulation nav item, under the label.
     simulationSublabel: 'Interactive track',
@@ -82,11 +87,6 @@ const registry = {
     eyebrows: {
       ib: 'IB Physics · A.1 — Projectile Motion',
       ap: 'AP Physics 1 · Unit 1 — Projectile Motion',
-      // Arriving from the A.1 topic folder, where this simulation is one item among several, so
-      // the eyebrow names the narrower scope — the same convention the ib and ap keys follow and
-      // the same key the other two entries carry for A.2. Only the back link differs.
-      // Without this key the eyebrow falls back to DEFAULT_EYEBROW in SimulationPage.jsx.
-      a1: 'IB Physics · A.1 — Projectile Motion',
     },
     simulationSublabel: 'Interactive trajectory',
     emptyChatHint: 'Ask about the launch you are running — the tutor can see your current setup.',
@@ -135,10 +135,6 @@ const registry = {
     eyebrows: {
       ib: "IB Physics · A.2 — Newton's Second Law",
       ap: "AP Physics 1 · Unit 2 — Friction & Newton's Second Law",
-      // Arriving from the A.2 topic folder is still arriving from IB, so the eyebrow matches the
-      // ib one; only the back link differs. Without this key the eyebrow would fall back to the
-      // generic "Mechanics" — see DEFAULT_EYEBROW in SimulationPage.jsx.
-      a2: "IB Physics · A.2 — Newton's Second Law",
     },
     simulationSublabel: 'Interactive free-body diagram',
     emptyChatHint: 'Ask about the block you are pushing — the tutor can see your current setup.',
