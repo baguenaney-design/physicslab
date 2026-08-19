@@ -52,3 +52,16 @@ shape documented at the top of `src/components/ui/TaughtItem.jsx`.
 A.2's items carry no `content` data file, so their folder cards show no `Read →` link and
 `/topic/a2/<id>` redirects home. Intentional: A.1 and A.3 were built out as the container's first
 users. A.2 joins them by adding one data file per item, no JSX.
+
+### Folder tag chips lead with IB on the AP folder
+On an AP-origin folder, the chips should lead with the AP tag, not IB. `Tags` in
+`src/pages/TopicFolder.jsx` renders `Object.values(topic.tags)`, and the keyed order in the topic
+data files is IB then AP, so IB leads on both tracks. Cosmetic metadata ordering, not routing —
+the chips deliberately show every curriculum, and which one is shown is already correct; only the
+order is track-blind. The taught-item page header does resolve the arriving curriculum and shows
+that one alone, so this is confined to the folder cards.
+
+Fix tied to per-item AP unit tagging, a weekend content decision: A.2 carries no AP tag at all
+because it straddles AP Unit 2 and Unit 4, and the honest resolution there is per-item tags rather
+than a topic-level number. Reordering by origin and adding per-item AP units are the same edit, so
+they should land together.
