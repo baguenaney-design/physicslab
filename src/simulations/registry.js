@@ -82,6 +82,11 @@ const registry = {
     eyebrows: {
       ib: 'IB Physics · A.1 — Projectile Motion',
       ap: 'AP Physics 1 · Unit 1 — Projectile Motion',
+      // Arriving from the A.1 topic folder, where this simulation is one item among several, so
+      // the eyebrow names the narrower scope — the same convention the ib and ap keys follow and
+      // the same key the other two entries carry for A.2. Only the back link differs.
+      // Without this key the eyebrow falls back to DEFAULT_EYEBROW in SimulationPage.jsx.
+      a1: 'IB Physics · A.1 — Projectile Motion',
     },
     simulationSublabel: 'Interactive trajectory',
     emptyChatHint: 'Ask about the launch you are running — the tutor can see your current setup.',

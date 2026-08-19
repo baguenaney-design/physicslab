@@ -1,16 +1,20 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { InlineMath } from 'react-katex'
 // Imported here for the same reason contentPrimitives.jsx imports it: this page is a separate
 // entry point into KaTeX, and equations render unstyled without the stylesheet.
 import 'katex/dist/katex.min.css'
 import EditorialShell from '../components/ui/EditorialShell'
 import PromissoryNote from '../components/ui/PromissoryNote'
-import { A2_FOLDER } from '../simulations/a2Folder.js'
+import topicRegistry from '../topics/topicRegistry.js'
+import { ORIGINS, DEFAULT_ORIGIN } from '../topics/origins.js'
 
-// A topic folder — DEMO, currently only A.2. Sits between the curriculum map and a simulation:
-// the map card opens the topic, and the topic lists everything in it, of which only some items
-// have a simulation behind them.
+// A topic folder. Sits between the curriculum map and a simulation: the map card opens the topic,
+// and the topic lists everything in it, of which only some items have a simulation behind them.
+//
+// A shell, like SimulationPage: the header, the key and the item list are the same for every
+// topic, and everything that differs comes from src/topics/topicRegistry.js keyed by the :code
+// route param. A.1, A.2 and A.3 all render through here.
 //
 // Editorial register throughout. This is curriculum-map territory, not instrument territory —
 // the register switch happens when the student opens the simulation item, not when they open
@@ -25,13 +29,17 @@ const LABELS = {
   extension: 'Beyond the classroom',
 }
 
+const microLabel = {
+  fontSize: '11px',
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+}
+
 function ItemLabel({ kind }) {
   return (
     <div
       style={{
-        fontSize: '11px',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
+        ...microLabel,
         marginBottom: '8px',
         color: kind === 'sim' ? 'var(--editorial-accent)' : 'var(--editorial-text-secondary)',
       }}
@@ -73,10 +81,29 @@ function Key() {
   )
 }
 
-function ItemBody({ item }) {
+// Where in each syllabus this item sits. Structural, not prose: it is the item's address, and it
+// comes from the topic unless an item overrides it. Sits opposite the kind label so the two
+// classifications — what this item IS, and where it BELONGS — read as one row.
+function Tags({ tags }) {
+  if (!tags || tags.length === 0) return null
+  return (
+    <div style={{ display: 'flex', gap: '14px' }}>
+      {tags.map((tag) => (
+        <span key={tag} style={{ ...microLabel, color: 'var(--editorial-text-secondary)' }}>
+          {tag}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function ItemBody({ item, tags }) {
   return (
     <>
-      <ItemLabel kind={item.kind} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <ItemLabel kind={item.kind} />
+        <Tags tags={item.tags ?? tags} />
+      </div>
       <div style={{ fontSize: '17px', fontWeight: 600, letterSpacing: '-0.01em', color: 'var(--editorial-text)' }}>
         {item.title}
       </div>
@@ -103,87 +130,131 @@ function ItemBody({ item }) {
   )
 }
 
-// Only the simulation item is a link — a taught item has nowhere to go yet, so it is a plain
-// card with no hover and no pointer cursor rather than a link that lands on an empty page.
-function SimItem({ item }) {
+// The shared card chrome. A card that goes somewhere is a Link and lights its border on hover; a
+// card that does not is a plain div with no hover and no pointer cursor, rather than a link that
+// lands on an empty page.
+function ItemCardShell({ to, dashed, children }) {
   const [hovered, setHovered] = useState(false)
+
+  const style = {
+    display: 'block',
+    padding: '16px',
+    border: dashed ? '1px dashed var(--editorial-border)' : '1px solid var(--editorial-border)',
+    borderColor: to && hovered ? 'var(--editorial-accent)' : 'var(--editorial-border)',
+    borderRadius: 'var(--radius-max)',
+    textDecoration: 'none',
+  }
+
+  if (!to) return <div style={style}>{children(false)}</div>
+
   return (
     <Link
-      to={item.to}
+      to={to}
+      style={style}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'block',
-        padding: '16px',
-        border: '1px solid',
-        borderColor: hovered ? 'var(--editorial-accent)' : 'var(--editorial-border)',
-        borderRadius: 'var(--radius-max)',
-        textDecoration: 'none',
-      }}
     >
-      <ItemBody item={item} />
-      <div
-        style={{
-          marginTop: '12px',
-          fontSize: '12px',
-          color: 'var(--editorial-accent)',
-          textDecoration: hovered ? 'underline' : 'none',
-        }}
-      >
-        Open simulation →
-      </div>
+      {children(hovered)}
     </Link>
   )
 }
 
-function TaughtItem({ item }) {
+function Cta({ label, hovered }) {
   return (
     <div
       style={{
-        padding: '16px',
-        border: '1px solid var(--editorial-border)',
-        borderRadius: 'var(--radius-max)',
+        marginTop: '12px',
+        fontSize: '12px',
+        color: 'var(--editorial-accent)',
+        textDecoration: hovered ? 'underline' : 'none',
       }}
     >
-      <ItemBody item={item} />
-      <PromissoryNote />
+      {label}
     </div>
+  )
+}
+
+function SimItem({ item, tags }) {
+  return (
+    <ItemCardShell to={item.to}>
+      {(hovered) => (
+        <>
+          <ItemBody item={item} tags={tags} />
+          <Cta label="Open simulation →" hovered={hovered} />
+        </>
+      )}
+    </ItemCardShell>
+  )
+}
+
+// A taught item links to its own page once it has a content data file. Until then it is a plain
+// card — the promissory note is the whole of what there is to say, and a "Read →" leading to an
+// empty container would be a worse promise than no link at all.
+function TaughtItemCard({ item, tags, to }) {
+  return (
+    <ItemCardShell to={to}>
+      {(hovered) => (
+        <>
+          <ItemBody item={item} tags={tags} />
+          <PromissoryNote />
+          {to && <Cta label="Read →" hovered={hovered} />}
+        </>
+      )}
+    </ItemCardShell>
   )
 }
 
 // The dashed rule and the exam line are the two signals that separate an optional tangent from
 // taught content at a glance — an extension should never read as something a student has to sit.
-function ExtensionItem({ item }) {
+function ExtensionItem({ item, tags }) {
   return (
-    <div
-      style={{
-        padding: '16px',
-        border: '1px dashed var(--editorial-border)',
-        borderRadius: 'var(--radius-max)',
-      }}
-    >
-      <ItemBody item={item} />
-      <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--editorial-text-secondary)' }}>
-        Optional — not required for AP or IB exams.
-      </div>
-    </div>
+    <ItemCardShell dashed>
+      {() => (
+        <>
+          <ItemBody item={item} tags={tags} />
+          <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--editorial-text-secondary)' }}>
+            Optional — not required for AP or IB exams.
+          </div>
+        </>
+      )}
+    </ItemCardShell>
   )
 }
 
-function ItemCard({ item }) {
-  if (item.kind === 'sim') return <SimItem item={item} />
-  if (item.kind === 'extension') return <ExtensionItem item={item} />
-  return <TaughtItem item={item} />
+function ItemCard({ item, tags, taughtHref }) {
+  if (item.kind === 'sim') return <SimItem item={item} tags={tags} />
+  if (item.kind === 'extension') return <ExtensionItem item={item} tags={tags} />
+  return <TaughtItemCard item={item} tags={tags} to={taughtHref(item)} />
 }
 
 function TopicFolder() {
-  const topic = A2_FOLDER
+  const { code } = useParams()
+  const [searchParams] = useSearchParams()
+  const from = searchParams.get('from')
+
+  const topic = topicRegistry[code]
+
+  // A mistyped or retired code lands somewhere real rather than on a blank shell — the same
+  // choice SimulationPage makes for an unknown slug.
+  if (!topic) return <Navigate to="/" replace />
+
+  // Both the back link and the code line follow the curriculum the student arrived from, so a
+  // student who came from one map is never shown the other's numbering — the convention
+  // registry.js `eyebrows` established for simulations. A folder reached without an origin, or
+  // from an origin the topic carries no number for, falls back to the IB code.
+  const backLink = ORIGINS[from] ?? DEFAULT_ORIGIN
+  const displayCode = topic.codes[from] ?? topic.codes.ib
+
+  // The origin rides along into a taught item so the whole chain — map, folder, section, back —
+  // keeps showing one curriculum's numbering.
+  const taughtHref = (item) =>
+    item.content ? `/topic/${code}/${item.id}${from ? `?from=${from}` : ''}` : null
 
   return (
     <EditorialShell>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <Link
-          to={topic.backLink.to}
+          to={backLink.to}
           style={{
             display: 'inline-block',
             fontSize: '13px',
@@ -192,13 +263,13 @@ function TopicFolder() {
             textDecoration: 'none',
           }}
         >
-          {topic.backLink.label}
+          {backLink.label}
         </Link>
 
         {/* Matches the code treatment on a curriculum-map card, so the syllabus reference reads
             the same on the card the student clicked and on the page it opened. */}
         <div style={{ fontSize: '12px', marginBottom: '6px', color: 'var(--editorial-accent)' }}>
-          {topic.code}
+          {displayCode}
         </div>
         <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
           {topic.title}
@@ -233,7 +304,7 @@ function TopicFolder() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {topic.items.map((item) => (
-            <ItemCard key={item.id} item={item} />
+            <ItemCard key={item.id} item={item} tags={topic.tags} taughtHref={taughtHref} />
           ))}
         </div>
       </div>
@@ -241,4 +312,12 @@ function TopicFolder() {
   )
 }
 
-export default TopicFolder
+// All folders share one route, /topic/:code, so React Router keeps the same TopicFolder mounted
+// when only the param changes. Keying on the code makes a topic change a remount, which is what
+// it is — the same reason SimulationPage keys on its slug.
+function TopicFolderRoute() {
+  const { code } = useParams()
+  return <TopicFolder key={code} />
+}
+
+export default TopicFolderRoute

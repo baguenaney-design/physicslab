@@ -6,22 +6,16 @@ import PracticePanel from '../components/sim/PracticePanel'
 import ChatPanel from '../components/sim/ChatPanel'
 import registry from '../simulations/registry.js'
 import { countQuestions } from '../simulations/contentParser.js'
+import { ORIGINS, DEFAULT_ORIGIN } from '../topics/origins.js'
 
 // The shell every simulation is rendered into. It owns the sidebar, the four-view switch and the
 // Concept→Ask gate; everything topic-specific comes from src/simulations/registry.js, keyed by
 // the :topic route param.
 
-// Where the student came from, carried in ?from= by the curriculum map links.
-// A query param rather than router history state so the breadcrumb survives a
-// refresh or a pasted link, both of which would leave state undefined.
-const ORIGINS = {
-  ib: { label: '← Back to IB', to: '/ib' },
-  ap: { label: '← Back to AP', to: '/ap' },
-  // A student who arrived through the A.2 topic folder goes back to the folder, not past it to
-  // the whole syllabus. Additive: the ib and ap origins above are what every other link still uses.
-  a2: { label: '← Back to A.2', to: '/topic/a2' },
-}
-const DEFAULT_ORIGIN = { label: '← Home', to: '/' }
+// Where the student came from, carried in ?from= by the curriculum map and topic folder links.
+// Moved to src/topics/origins.js now that TopicFolder reads the same param: the folder's back
+// link and the simulation's back link have to agree about what each origin means, and two copies
+// of that map would eventually disagree.
 const DEFAULT_EYEBROW = 'Mechanics'
 
 // The tutor is the one view that is earned. It opens once the student has been to Concept —

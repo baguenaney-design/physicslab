@@ -1,30 +1,30 @@
 import EditorialShell from '../components/ui/EditorialShell'
 import { CurriculumSection } from '../components/ui/TopicCard'
 
-// IB Physics syllabus, first teaching 2023. A.1 and A.2 are the only topics
-// with a simulation built; everything else is shown greyed rather than hidden
-// so a student can see the whole roadmap.
+// IB Physics syllabus, first teaching 2023. A.1, A.2 and A.3 are the only topics
+// that open; everything else is shown greyed rather than hidden so a student can
+// see the whole roadmap.
 //
-// DEMO: A.2 is one card that opens a topic folder rather than a simulation,
-// because the topic holds more than one simulation — Newton's second law and
-// momentum — plus taught content with no simulation at all. TopicCard carries a
-// single destination, and the folder is what a single destination for a topic of
-// several items looks like. See src/simulations/a2Folder.js.
+// Those three open a TOPIC FOLDER rather than a simulation. A syllabus topic is
+// wider than any one simulation — A.2 holds two of them plus taught content, A.1
+// holds one, A.3 holds none at all yet — and TopicCard carries a single
+// destination. The folder is what a single destination for a topic of several
+// items looks like. See src/topics/topicRegistry.js.
 //
 // Each topic is broader than the simulation behind it, so each simulation's
 // sidebar eyebrow names the narrower scope on arrival — see the entries in
 // src/simulations/registry.js.
 //
-// The `from=ib` query param is what the simulation page reads to render its
-// back link — see SimulationPage.jsx.
+// The `from=ib` query param is what the folder and the simulation page read to
+// render their back link and their code line — see src/topics/origins.js.
 
 const SECTIONS = [
   {
     heading: 'Section A — Space, time and motion',
     topics: [
-      { code: 'A.1', title: 'Kinematics', to: '/sim/projectile?from=ib' },
-      { code: 'A.2', title: 'Forces and momentum', to: '/topic/a2', cta: 'Open topic →' },
-      { code: 'A.3', title: 'Work, energy and power' },
+      { code: 'A.1', title: 'Kinematics', to: '/topic/a1?from=ib', cta: 'Open topic →' },
+      { code: 'A.2', title: 'Forces and momentum', to: '/topic/a2?from=ib', cta: 'Open topic →' },
+      { code: 'A.3', title: 'Work, energy and power', to: '/topic/a3?from=ib', cta: 'Open topic →' },
       { code: 'A.4', title: 'Rigid body mechanics' },
       { code: 'A.5', title: 'Relativity' },
     ],

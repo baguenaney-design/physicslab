@@ -1,10 +1,12 @@
-// The A.2 topic folder — DEMO.
+// The A.2 topic folder.
 //
 // IB A.2 is one syllabus topic that is wider than the simulations behind it. Two of its items are
 // built — Newton's second law and momentum — and the rest (the first and third laws, force types,
 // inclined planes, connected bodies) have no simulation, and several may never need one. This
-// file is the experiment in showing a topic as a folder of its items rather than as a link to
-// whichever item happens to have a canvas.
+// file is the original experiment in showing a topic as a folder of its items rather than as a
+// link to whichever item happens to have a canvas. That experiment is now the model A.1 and A.3
+// follow; this file moved from src/simulations/a2Folder.js to sit beside them, and its copy came
+// with it unchanged.
 //
 // Data only, no JSX — the same split registry.js makes, so the page component owns layout and
 // this file owns what is in the topic.
@@ -14,6 +16,9 @@
 //   'taught'    — reviewed content with no simulation; shows a PromissoryNote
 //   'extension' — an optional tangent, explicitly not required for either exam
 //
+// A `taught` item here still has no `content` key, so its card shows no "Read →" link — A.2's
+// taught pages are not written. A.1 and A.3 show what a filled one looks like.
+//
 // PLACEHOLDER: every taught item's `summary`, and the extension's, is a TODO line. The titles are
 // real and final; that prose is not written and has not been through review. The two simulation
 // summaries are real, because they describe pages that exist. Nothing in this file asserts a
@@ -21,7 +26,6 @@
 // is no physics here to get wrong. The prose replacing the TODOs will need Peter's review.
 
 export const A2_FOLDER = {
-  code: 'A.2',
   // The syllabus's own title for the topic. Not a coined one: the folder is claiming to BE A.2,
   // so it takes A.2's name.
   title: 'Forces and momentum',
@@ -31,7 +35,17 @@ export const A2_FOLDER = {
     'Everything the syllabus covers under this topic lives here — whether or not an interactive ' +
     'simulation exists for it yet. Items marked live are interactive; the rest are full taught ' +
     'content, with a note wherever a simulation is planned.',
-  backLink: { label: '← Back to IB', to: '/ib' },
+
+  // The header's code line, chosen by the ?from= origin the student arrived with — the same
+  // convention registry.js `eyebrows` uses, so a student who came from one curriculum is never
+  // shown the other's numbering. No `ap` key: A.2 is reached from the IB map only, and it
+  // straddles two AP units (Unit 2 and Unit 4), so there is no single AP number to assert.
+  // TopicFolder falls back to `ib` when the origin has no entry.
+  codes: { ib: 'A.2' },
+
+  // Shown as chips on each item. One AP number would be wrong here for the reason above, so this
+  // topic claims its IB location only. An item may carry its own `tags` to override.
+  tags: ['IB A.2'],
 
   // Ordered the way the topic is taught, NOT by which items have been built. Grouping the two
   // simulations at the top would order the topic by our progress rather than by the physics, and
