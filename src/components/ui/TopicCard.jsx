@@ -5,8 +5,13 @@ import { Link } from 'react-router-dom'
 // students should be able to see the whole roadmap, not just what is built.
 // `code` is the syllabus reference (IB "A.2", AP "Unit 4"); omitted where the
 // course's official unit numbering is not being asserted.
+//
+// `cta` overrides the call to action for a card that does not open a simulation — a topic folder,
+// for instance. Every card that does open one omits it and gets the default.
 
-function CardBody({ code, title, available, hovered }) {
+const DEFAULT_CTA = 'Open simulation →'
+
+function CardBody({ code, title, available, hovered, cta }) {
   return (
     <>
       {code && (
@@ -37,13 +42,13 @@ function CardBody({ code, title, available, hovered }) {
           textDecoration: available && hovered ? 'underline' : 'none',
         }}
       >
-        {available ? 'Open simulation →' : 'Coming soon'}
+        {available ? (cta ?? DEFAULT_CTA) : 'Coming soon'}
       </div>
     </>
   )
 }
 
-function TopicCard({ code, title, to }) {
+function TopicCard({ code, title, to, cta }) {
   const [hovered, setHovered] = useState(false)
   const available = Boolean(to)
 
@@ -74,7 +79,7 @@ function TopicCard({ code, title, to }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <CardBody code={code} title={title} available hovered={hovered} />
+      <CardBody code={code} title={title} available hovered={hovered} cta={cta} />
     </Link>
   )
 }
@@ -107,7 +112,13 @@ export function CurriculumSection({ heading, subheading, topics }) {
         }}
       >
         {topics.map((topic) => (
-          <TopicCard key={topic.title} code={topic.code} title={topic.title} to={topic.to} />
+          <TopicCard
+            key={topic.title}
+            code={topic.code}
+            title={topic.title}
+            to={topic.to}
+            cta={topic.cta}
+          />
         ))}
       </div>
     </section>

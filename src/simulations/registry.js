@@ -124,6 +124,10 @@ const registry = {
     eyebrows: {
       ib: "IB Physics · A.2 — Newton's Second Law",
       ap: "AP Physics 1 · Unit 2 — Friction & Newton's Second Law",
+      // Arriving from the A.2 topic folder is still arriving from IB, so the eyebrow matches the
+      // ib one; only the back link differs. Without this key the eyebrow would fall back to the
+      // generic "Mechanics" — see DEFAULT_EYEBROW in SimulationPage.jsx.
+      a2: "IB Physics · A.2 — Newton's Second Law",
     },
     simulationSublabel: 'Interactive free-body diagram',
     emptyChatHint: 'Ask about the block you are pushing — the tutor can see your current setup.',

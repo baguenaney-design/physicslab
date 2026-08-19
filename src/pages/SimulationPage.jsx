@@ -17,6 +17,9 @@ import { countQuestions } from '../simulations/contentParser.js'
 const ORIGINS = {
   ib: { label: '← Back to IB', to: '/ib' },
   ap: { label: '← Back to AP', to: '/ap' },
+  // A student who arrived through the A.2 topic folder goes back to the folder, not past it to
+  // the whole syllabus. Additive: the ib and ap origins above are what every other link still uses.
+  a2: { label: '← Back to A.2', to: '/topic/a2' },
 }
 const DEFAULT_ORIGIN = { label: '← Home', to: '/' }
 const DEFAULT_EYEBROW = 'Mechanics'
