@@ -34,8 +34,14 @@ const registry = {
     content: momentumContent,
     SimulationView: MomentumSimulationView,
     eyebrows: {
+      // Names the whole topic, which was right while the IB map card for A.2 was this simulation.
+      // Kept unchanged so bookmarked and pasted ?from=ib links still resolve.
       ib: 'IB Physics · Topic A.2',
       ap: 'AP Physics 1 · Unit 4',
+      // Arriving from the A.2 topic folder, where this simulation is one item among several, so
+      // the eyebrow names the narrower scope — the convention the other two entries follow.
+      // Without this key the eyebrow falls back to DEFAULT_EYEBROW in SimulationPage.jsx.
+      a2: 'IB Physics · A.2 — Momentum and Impulse',
     },
     // Shown in the Simulation nav item, under the label.
     simulationSublabel: 'Interactive track',

@@ -41,6 +41,38 @@ function ItemLabel({ kind }) {
   )
 }
 
+// The body copy claims that items marked live are interactive and the rest are taught content.
+// This is what lets a reader check that claim before scrolling: the same ItemLabel component the
+// cards use, so a chip in the key and a chip on a card cannot drift apart.
+function Key() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: '32px',
+        alignItems: 'baseline',
+        paddingTop: '14px',
+        marginBottom: '20px',
+        borderTop: '1px solid var(--editorial-border)',
+      }}
+    >
+      {[
+        { kind: 'sim', gloss: 'interactive now' },
+        { kind: 'taught', gloss: 'simulation planned' },
+      ].map(({ kind, gloss }) => (
+        <div key={kind} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+          {/* ItemLabel carries its own bottom margin for use inside a card; zeroed here so the
+              key sits on one baseline. */}
+          <div style={{ marginBottom: '-8px' }}>
+            <ItemLabel kind={kind} />
+          </div>
+          <span style={{ fontSize: '13px', color: 'var(--editorial-text-secondary)' }}>{gloss}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function ItemBody({ item }) {
   return (
     <>
@@ -171,16 +203,33 @@ function TopicFolder() {
         <h1 style={{ fontSize: '32px', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 8px' }}>
           {topic.title}
         </h1>
+        {/* The syllabus's own description of the topic, set in italic to read as a quoted scope
+            line rather than as our own prose — the paragraph below it is ours. */}
         <p
           style={{
-            fontSize: '15px',
+            fontSize: '16px',
+            fontStyle: 'italic',
+            lineHeight: 1.5,
             color: 'var(--editorial-text-secondary)',
-            margin: '0 0 40px',
+            margin: '0 0 16px',
             maxWidth: '620px',
           }}
         >
-          {topic.blurb}
+          {topic.descriptor}
         </p>
+        <p
+          style={{
+            fontSize: '15px',
+            lineHeight: 1.6,
+            color: 'var(--editorial-text-secondary)',
+            margin: '0 0 28px',
+            maxWidth: '620px',
+          }}
+        >
+          {topic.body}
+        </p>
+
+        <Key />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {topic.items.map((item) => (
