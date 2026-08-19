@@ -84,11 +84,18 @@ function Key() {
 // Where in each syllabus this item sits. Structural, not prose: it is the item's address, and it
 // comes from the topic unless an item overrides it. Sits opposite the kind label so the two
 // classifications — what this item IS, and where it BELONGS — read as one row.
+//
+// A folder card shows EVERY tag, on both tracks. This is the one place the cross-curriculum
+// mapping lives, and it is deliberate: a student scanning a topic should be able to see that their
+// Unit 1 is someone else's A.1. A taught item's own page does the opposite and shows only the
+// arriving curriculum — see TaughtItemPage. `tags` is keyed by curriculum rather than a flat list
+// so that page can ask for one; insertion order is IB then AP, which is the order rendered here.
 function Tags({ tags }) {
-  if (!tags || tags.length === 0) return null
+  const labels = Object.values(tags ?? {})
+  if (labels.length === 0) return null
   return (
     <div style={{ display: 'flex', gap: '14px' }}>
-      {tags.map((tag) => (
+      {labels.map((tag) => (
         <span key={tag} style={{ ...microLabel, color: 'var(--editorial-text-secondary)' }}>
           {tag}
         </span>

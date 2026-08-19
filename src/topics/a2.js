@@ -43,9 +43,12 @@ export const A2_FOLDER = {
   // TopicFolder falls back to `ib` when the origin has no entry.
   codes: { ib: 'A.2' },
 
-  // Shown as chips on each item. One AP number would be wrong here for the reason above, so this
-  // topic claims its IB location only. An item may carry its own `tags` to override.
-  tags: ['IB A.2'],
+  // Where this topic sits in each syllabus — keyed by curriculum, see the same key in a1.js. No
+  // `ap` key, for the reason `codes` has none: A.2 straddles AP Unit 2 and Unit 4, so this topic
+  // claims its IB location only and a taught page reached from AP falls back to it. The honest fix
+  // the day A.2 gets taught content is per-item tags — each item does sit in one AP unit — not a
+  // made-up topic-level number. An item may carry its own `tags` to override.
+  tags: { ib: 'IB A.2' },
 
   // Ordered the way the topic is taught, NOT by which items have been built. Grouping the two
   // simulations at the top would order the topic by our progress rather than by the physics, and

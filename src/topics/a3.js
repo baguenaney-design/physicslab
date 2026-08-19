@@ -36,8 +36,8 @@ export const A3_FOLDER = {
   // The header's code line, chosen by the ?from= origin — see the same key in a2.js.
   codes: { ib: 'A.3', ap: 'AP Physics 1 · Unit 3' },
 
-  // Both curricula place this whole topic in one place, so every item inherits both tags.
-  tags: ['IB A.3', 'AP Physics 1 · Unit 3'],
+  // Where this topic sits in each syllabus — keyed by curriculum, see the same key in a1.js.
+  tags: { ib: 'IB A.3', ap: 'AP Physics 1 · Unit 3' },
 
   // Ordered the way the topic is taught, the a2.js convention: work defines the energy transfer,
   // the two stores follow, conservation ties them together, and power puts a rate on all of it.

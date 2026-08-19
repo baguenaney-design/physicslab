@@ -34,8 +34,11 @@ export const A1_FOLDER = {
   // reached from both maps, so both numbers are carried and neither student sees the other's.
   codes: { ib: 'A.1', ap: 'AP Physics 1 · Unit 1' },
 
-  // Both curricula place this whole topic in one place, so every item inherits both tags.
-  tags: ['IB A.1', 'AP Physics 1 · Unit 1'],
+  // Where this topic sits in each syllabus. Keyed by curriculum, the same shape as `codes` above,
+  // because the two are read the same way: the folder cards show every tag, and a taught item's
+  // page shows only the one for the curriculum the student arrived on. A flat list could not do
+  // the second — there was no way to ask it for the AP tag.
+  tags: { ib: 'IB A.1', ap: 'AP Physics 1 · Unit 1' },
 
   // Ordered the way the topic is taught, not by what is built — the a2.js convention. Graphs and
   // the SUVAT relations both precede projectile motion, which applies them in two dimensions.

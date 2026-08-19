@@ -35,8 +35,9 @@ import { renderInline } from '../sim/contentPrimitives.jsx'
 // A question's solution is gated behind a reveal, matching the Practice panel inside the
 // simulations; until a solution is written the control is inert and says so.
 //
-// The section TITLE and its syllabus TAGS are NOT part of this shape. They live on the item in
-// the topic folder file, so the card in the folder and the page it opens cannot disagree.
+// The section TITLE and its syllabus TAG are NOT part of this shape. They live on the item in the
+// topic folder file, so the card in the folder and the page it opens cannot disagree. The tag
+// arrives already resolved to one curriculum — the page picks it, this component just sets it.
 // ---------------------------------------------------------------------------------------------
 
 const MEASURE = '68ch'
@@ -218,19 +219,18 @@ function Question({ question, index }) {
   )
 }
 
-function TaughtItem({ item, tags, content }) {
+function TaughtItem({ item, tag, content }) {
   const equations = content?.equations ?? []
   const questions = content?.questions ?? []
 
   return (
     <article>
-      {tags.length > 0 && (
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '10px' }}>
-          {tags.map((tag) => (
-            <span key={tag} style={{ ...microLabel, color: 'var(--editorial-accent)' }}>
-              {tag}
-            </span>
-          ))}
+      {/* One tag, naming this section's place in the curriculum the student arrived on — never
+          both, and never the other one's numbering. Cross-curriculum mapping lives on the folder
+          card, not here. */}
+      {tag && (
+        <div style={{ ...microLabel, color: 'var(--editorial-accent)', marginBottom: '10px' }}>
+          {tag}
         </div>
       )}
 
